@@ -29,6 +29,7 @@ class LipParser:
     def __init__(self, file_name):
         """
         Assumes that file is in the current working directory
+        HTML file must include all expanded sections
         :param file_name:
         """
 
@@ -48,7 +49,7 @@ class LipParser:
 
     def get_bio(self):
         """
-        Returns the bio without new-lines
+        Gets this persons bio w/o new lines
         :return: string bio
         """
 
@@ -67,7 +68,7 @@ class LipParser:
 
     def get_current_company(self):
         """
-        Returns company with a ton of spaces at the front? Condition later
+        Gets this persons current company with a ton of spaces at the front? Condition later
         :return: "current company"
         """
 
@@ -105,7 +106,7 @@ class LipParser:
     def get_media_number(self):
         """
         Probably considered an ugly way to do this but it works
-        :return: string, phone number
+        :return: number of media files (int)
         """
         media_title = self.soup.find(class_="pv-treasury-carousel__subheadline")
         if media_title is None:
@@ -122,13 +123,14 @@ class LipParser:
     def get_languages(self):
         """
         The following two methods could be condensed into one method (including this one) with another param if desired.
+        Gets this persons languages
         :return: ['language', 'language']
         """
 
         accomp_tag = self.soup.find(class_="pv-profile-section artdeco-container-card pv-accomplishments-section ember-view")
         languages_array = []
         for section in accomp_tag.find_all(class_="pv-accomplishments-block__title"):
-            if section.string == "Languages":
+            if section.string == "Language" or section.string == "Languages":
                 for language in section.parent.find_all(class_="pv-accomplishments-block__summary-list-item"):
                     languages_array.append(language.string)
                 break
@@ -143,7 +145,7 @@ class LipParser:
         accomp_tag = self.soup.find(class_="pv-profile-section artdeco-container-card pv-accomplishments-section ember-view")
         cert_array = []
         for section in accomp_tag.find_all(class_="pv-accomplishments-block__title"):
-            if section.string == "Certification":
+            if section.string == "Certification" or section.string == "Certifications":
                 for certification in section.parent.find_all(class_="pv-accomplishments-block__summary-list-item"):
                     cert_array.append(certification.string)
                 break
@@ -157,7 +159,7 @@ class LipParser:
         accomp_tag = self.soup.find(class_="pv-profile-section artdeco-container-card pv-accomplishments-section ember-view")
         proj_array = []
         for section in accomp_tag.find_all(class_="pv-accomplishments-block__title"):
-            if section.string == "Projects":
+            if section.string == "Project" or section.string == "Projects":
                 for project in section.parent.find_all(class_="pv-accomplishments-block__summary-list-item"):
                     proj_array.append(project.string)
                 break
@@ -165,7 +167,7 @@ class LipParser:
 
     def get_connection_number(self):
         """
-        Get this persons connection phone number
+        Get this persons number of LinkedIn Connections
         :return: number
         """
         conn_tag = self.soup.find(class_="pv-top-card-section__connections pv-top-card-section__connections--with-separator Sans-17px-black-70% mb1 inline-block")
@@ -174,7 +176,3 @@ class LipParser:
             if string.isdigit():
                 cons = int(string)
         return cons
-
-
-
-
