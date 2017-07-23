@@ -1,3 +1,5 @@
+import os
+
 from profile_parser import LipParser
 
 """
@@ -5,12 +7,13 @@ This module doesn't have anything important yet, it's just for testing existing 
 Eventually it'll be where we run the main program.
 """
 
-profiles = [LipParser("AG.html"),
-            LipParser("AT.html"),
-            LipParser("BA.html")]
 
 
-for profile in profiles:
+
+# Open all files in the Profiles directory, parse, and print them
+for file in os.listdir("Profiles"):
+    profile = LipParser(os.path.join("Profiles", file))
+
     print("Name: ", profile.get_name())
     print("Companies: ", profile.get_all_companies())
     print("Bio: ", profile.get_bio())

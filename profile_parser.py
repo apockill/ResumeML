@@ -107,7 +107,10 @@ class LipParser:
         Probably considered an ugly way to do this but it works
         :return: string, phone number
         """
-        media_title = self.soup.find(class_="pv-treasury-carousel__subheadline").string
+        media_title = self.soup.find(class_="pv-treasury-carousel__subheadline")
+        if media_title is None:
+            return ""
+        media_title = media_title.string
         media_num = 0
 
         for character in media_title:
