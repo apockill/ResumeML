@@ -166,7 +166,6 @@ class LipParser:
     def get_connection_number(self):
         """
         Get this persons connection phone number
-        TODO: Fix. Currentyl broken?
         :return: number
         """
         conn_tag = self.soup.find(class_="pv-top-card-section__connections pv-top-card-section__connections--with-separator Sans-17px-black-70% mb1 inline-block")
