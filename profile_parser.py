@@ -55,6 +55,8 @@ class LipParser:
 
         bio_tag = self.soup.find(class_="pv-top-card-section__summary Sans-15px-black-70% mt5 pt5 ember-view")
         bio = ""
+        if bio_tag is None:
+            return ""
         for string in bio_tag.strings:  # P seems to be content in paragraphs
             if string != "See more":
                 bio = bio + string
@@ -68,12 +70,16 @@ class LipParser:
 
     def get_current_company(self):
         """
-        Gets this persons current company with a ton of spaces at the front? Condition later
+        Gets this persons current company with a ton of spaces at the front and newlines??? Condition later
         :return: "current company"
         """
 
-        company = self.soup.find(class_="pv-top-card-section__company Sans-17px-black-70% mb1 inline-block").string
-        return company
+        company_tag = self.soup.find(class_="pv-top-card-section__company Sans-17px-black-70% mb1 inline-block")
+        if company_tag is None:
+            return
+
+        else:
+            return company_tag.string
 
     def get_all_companies(self):
         """
@@ -82,6 +88,8 @@ class LipParser:
         """
 
         experience_tag = self.soup.find(class_="pv-profile-section experience-section ember-view")
+        if experience_tag is None:
+            return
         companies_array = []
 
         for company in experience_tag.find_all(class_="pv-entity__secondary-title"):
@@ -122,12 +130,15 @@ class LipParser:
 
     def get_languages(self):
         """
-        The following two methods could be condensed into one method (including this one) with another param if desired.
+        The following few methods could be condensed into one method (including this one) with another param if desired.
         Gets this persons languages
         :return: ['language', 'language']
         """
 
         accomp_tag = self.soup.find(class_="pv-profile-section artdeco-container-card pv-accomplishments-section ember-view")
+        if accomp_tag is None:
+            accomp_tag = self.soup.find(class_="pv-profile-section pv-accomplishments-section artdeco-container-card ember-view")
+
         languages_array = []
         for section in accomp_tag.find_all(class_="pv-accomplishments-block__title"):
             if section.string == "Language" or section.string == "Languages":
@@ -141,8 +152,11 @@ class LipParser:
         Get this persons certifications
         :return: ['Certification', 'cert', ...]
         """
-
+        return 0
         accomp_tag = self.soup.find(class_="pv-profile-section artdeco-container-card pv-accomplishments-section ember-view")
+        if accomp_tag is None:
+            accomp_tag = self.soup.find(class_="pv-profile-section pv-accomplishments-section artdeco-container-card ember-view")
+
         cert_array = []
         for section in accomp_tag.find_all(class_="pv-accomplishments-block__title"):
             if section.string == "Certification" or section.string == "Certifications":
@@ -157,6 +171,9 @@ class LipParser:
         :return: ['project name', 'project name']
         """
         accomp_tag = self.soup.find(class_="pv-profile-section artdeco-container-card pv-accomplishments-section ember-view")
+        if accomp_tag is None:
+            accomp_tag = self.soup.find(class_="pv-profile-section pv-accomplishments-section artdeco-container-card ember-view")
+
         proj_array = []
         for section in accomp_tag.find_all(class_="pv-accomplishments-block__title"):
             if section.string == "Project" or section.string == "Projects":
@@ -164,6 +181,57 @@ class LipParser:
                     proj_array.append(project.string)
                 break
         return proj_array
+
+    def get_awards(self):
+        """
+        Get the honors/awards this person has earned.
+        :return: ['h/a name', 'h/a name']
+        """
+        accomp_tag = self.soup.find(class_="pv-profile-section artdeco-container-card pv-accomplishments-section ember-view")
+        if accomp_tag is None:
+            accomp_tag = self.soup.find(class_="pv-profile-section pv-accomplishments-section artdeco-container-card ember-view")
+
+        awar_array = []
+        for section in accomp_tag.find_all(class_="pv-accomplishments-block__title"):
+            if section.string == "Honors & Awards" or section.string == "Award":
+                for award in section.parent.find_all(class_="pv-accomplishments-block__summary-list-item"):
+                    awar_array.append(award.string)
+                break
+        return awar_array
+
+    def get_organizations(self):
+        """
+        Get the organizations this person is/was a part of.
+        :return: ['organization name', 'organization name']
+        """
+        accomp_tag = self.soup.find(class_="pv-profile-section artdeco-container-card pv-accomplishments-section ember-view")
+        if accomp_tag is None:
+            accomp_tag = self.soup.find(class_="pv-profile-section pv-accomplishments-section artdeco-container-card ember-view")
+
+        org_array = []
+        for section in accomp_tag.find_all(class_="pv-accomplishments-block__title"):
+            if section.string == "Organizations" or section.string == "Organization":
+                for organization in section.parent.find_all(class_="pv-accomplishments-block__summary-list-item"):
+                    org_array.append(organization.string)
+                break
+        return org_array
+
+    def get_courses(self):
+        """
+        Get the courses this person has taken.
+        :return: ['course name', 'course name']
+        """
+        accomp_tag = self.soup.find(class_="pv-profile-section artdeco-container-card pv-accomplishments-section ember-view")
+        if accomp_tag is None:
+            accomp_tag = self.soup.find(class_="pv-profile-section pv-accomplishments-section artdeco-container-card ember-view")
+
+        cour_array = []
+        for section in accomp_tag.find_all(class_="pv-accomplishments-block__title"):
+            if section.string == "Courses" or section.string == "Course":
+                for course in section.parent.find_all(class_="pv-accomplishments-block__summary-list-item"):
+                    cour_array.append(course.string)
+                break
+        return cour_array
 
     def get_connection_number(self):
         """
@@ -176,3 +244,4 @@ class LipParser:
             if string.isdigit():
                 cons = int(string)
         return cons
+

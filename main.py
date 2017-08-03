@@ -23,6 +23,9 @@ for file in os.listdir("Profiles"):
     print("Location: ", profile.get_location())
     print("Skills: ", profile.get_skills())
     print("Projects: ", profile.get_projects())
+    print("Honors & Awards: ", profile.get_awards())
+    print("Organizations: ", profile.get_organizations())
+    print("Courses: ", profile.get_courses())
     print("Connection #: ", profile.get_connection_number())
     print("Media #: ", profile.get_media_number())
 
