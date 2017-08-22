@@ -1,0 +1,6 @@
+{
+  "driver_path": "Resources/phantomjs.exe",
+  "browser_timeout": 30,
+  "max_browser_instances": 1,
+  "max_depth": 1
+}

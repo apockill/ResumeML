@@ -37,15 +37,56 @@ class LipParser:
         with open(file_path, encoding='utf8') as fp:
             self.soup = BeautifulSoup(fp, "html.parser")
 
+    # Tested with all profiles
     def get_name(self):
         """
         Finds the name of the Lip holder
         :return: string name
         """
 
-        name = self.soup.find(class_="pv-top-card-section__name Sans-26px-black-85%").string
+        try:
+            name = self.soup.find(class_="pv-top-card-section__name Sans-26px-black-85%").string
+        except AttributeError:
+            name = self.soup.find(id="name").string
+
         return name
 
+    def get_skills(self):
+        """
+        Get skills from skills section (skills section has to be expanded before acquiring html)
+
+        Future: Could also return the number of skills. Also endorsements?
+        :return: ['skill', 'skill', ...]
+        """
+
+        skills_html = self.soup.find_all(class_="pv-skill-entity__skill-name")
+        if len(skills_html) == 0:
+            skills_html = self.soup.find_all(class_="skill")
+
+
+        skills_array = []
+
+        for skill in skills_html:
+            # Get rid of the "See X+" and "See less" buttons that pop up under skills
+            if "see-more" in skill.get_attribute_list('class'): continue
+            if "see-less" in skill.get_attribute_list('class'): continue
+
+            if skill.find_all(class_="skill see-more"): continue
+
+            skills_array.append(skill.string)
+
+        return skills_array
+
+    def get_profile_url(self):
+        """ Gets the name of the person from the URL of the page. This is useful for when you need a unique name
+         of a person.
+         :return: String, unique name"""
+        url_links = self.soup.find_all('link', rel="canonical", href=True, )
+        profile_url = url_links[0]['href']
+
+        return profile_url
+
+    # Untested
     def get_bio(self):
         """
         Returns the bio without new-lines
@@ -88,19 +129,6 @@ class LipParser:
 
         return companies_array
 
-    def get_skills(self):
-        """
-        Get skills from skills section (skills section has to be expanded before acquiring html)
-
-        Future: Could also return the number of skills. Also endorsements?
-        :return: ['skill', 'skill', ...]
-        """
-
-        skills_array = []
-        for skill in self.soup.find_all(class_="pv-skill-entity__skill-name"):
-            skills_array.append(skill.string)
-
-        return skills_array
 
     def get_media_number(self):
         """
