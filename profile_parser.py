@@ -87,6 +87,62 @@ class LipParser:
 
         return profile_url
 
+    def get_location(self):
+        location_tag = self.soup.find(class_="locality")
+        location = None
+        if location_tag is not None:
+            location = location_tag.string
+        return location
+
+    def get_current_company(self):
+        """
+        Gets this persons current company with a ton of spaces at the front and newlines??? Condition later
+        :return: "current company"
+        """
+
+        company_tag = self.soup.find(attrs={"data-section": "currentPositionsDetails"})
+        if company_tag is not None:
+            current_company = company_tag.find(class_="org").string
+            return current_company
+
+        companies = self.get_all_companies()
+        if len(companies) != 0:
+            return companies[0]
+
+        return self.soup.find(class_="headline title").string
+
+    def get_all_companies(self):
+        """
+        Returns all companies in experience section
+        :return: ["company", "company"]
+        if no companies found return empty array
+        """
+
+        experience_tag = self.soup.find(class_="positions")
+        if experience_tag is None:
+            return []
+        companies_array = []
+
+        for company in experience_tag.find_all(class_="item-subtitle"):
+            companies_array.append(company.string)
+
+        return companies_array
+
+    def get_connection_number(self):
+        """
+        Get this persons number of LinkedIn Connections
+        :return: number
+        """
+        conn_tag = self.soup.find(class_="member-connections")
+        cons = 0
+        for string in conn_tag.strings:
+            if string.isdigit():
+                cons = int(string)
+
+            elif string == "500+":
+                cons = 500
+        return cons
+
     # Untested
     def get_bio(self):
         """
@@ -105,39 +161,6 @@ class LipParser:
                 break
 
         return bio.replace("\n", "")
-
-    def get_location(self):
-        return self.soup.find(class_="pv-top-card-section__location Sans-17px-black-70% mb1 inline-block").string
-
-    def get_current_company(self):
-        """
-        Gets this persons current company with a ton of spaces at the front and newlines??? Condition later
-        :return: "current company"
-        """
-
-        company_tag = self.soup.find(class_="pv-top-card-section__company Sans-17px-black-70% mb1 inline-block")
-        if company_tag is None:
-            return
-
-        else:
-            return company_tag.string
-
-    def get_all_companies(self):
-        """
-        Returns all companies in experience section
-        :return: ["company", "company"]
-        """
-
-        experience_tag = self.soup.find(class_="pv-profile-section experience-section ember-view")
-        if experience_tag is None:
-            return
-        companies_array = []
-
-        for company in experience_tag.find_all(class_="pv-entity__secondary-title"):
-            companies_array.append(company.string)
-
-        return companies_array
-
 
     def get_media_number(self):
         """
@@ -260,16 +283,4 @@ class LipParser:
                     cour_array.append(course.string)
                 break
         return cour_array
-
-    def get_connection_number(self):
-        """
-        Get this persons number of LinkedIn Connections
-        :return: number
-        """
-        conn_tag = self.soup.find(class_="pv-top-card-section__connections pv-top-card-section__connections--with-separator Sans-17px-black-70% mb1 inline-block")
-        cons = 0
-        for string in conn_tag.strings:
-            if string.isdigit():
-                cons = int(string)
-        return cons
 
