@@ -1,6 +1,6 @@
 import os
 
-from profile_parser import LipParser
+from linkedin.profile_manager import ProfileManager
 
 """
 This module doesn't have anything important yet, it's just for testing existing stuff. 
@@ -8,29 +8,25 @@ Eventually it'll be where we run the main program.
 """
 
 
+profiles_dir = os.path.join(os.getcwd(), "ScrapedProfiles")
 
+# Open all files in the ScrapedProfiles directory, parse, and print them
+for profile in ProfileManager(profiles_dir):
 
-# Open all files in the Profiles directory, parse, and print them
-for file in os.listdir("Profiles"):
-    profile = LipParser(os.path.join("Profiles", file))
-
-    print("Name: ", profile.get_name())
-    print("URL Name: ", profile.get_profile_url())
-    print("Skills: ", profile.get_skills(), len(profile.get_skills()))
-    print("Current Company: ", profile.get_current_company())
-    print("Companies: ", profile.get_all_companies())
-    print("Location: ", profile.get_location())
-    print("Connections : ", profile.get_connection_number())
+    print("Name: ", profile.name)
+    print("URL Name: ", profile.username)
+    print("Skills: ", profile.skills)
+    print("Current Company: ", profile.current_company)
+    print("Companies: ", profile.all_companies)
+    print("Location: ", profile.location)
+    print("Connections : ", profile.connection_count)
 
     # print("Bio: ", profile.get_bio())
     # print("Certifications: ", profile.get_certification())
-    # print("Current Company: ", profile.get_current_company())
     # print("Languages: ", profile.get_languages())
     # print("Location: ", profile.get_location())
-    # print("Skills: ", profile.get_skills())
     # print("Projects: ", profile.get_projects())
-    # print("Connection #: ", profile.get_connection_number())
     # print("Media #: ", profile.get_media_number())
 
-
     print("\n\n")
+

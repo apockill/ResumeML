@@ -21,25 +21,55 @@ for link in soup.find_all('a'): # Print out found links
 """
 
 
-class LipParser:
+def cache(cache_var):
+    """ This is a semi-confusing decorator saving function for caching variables.
+        Usage:
+            @cache("__thing")
+            def thing(self):
+                # Do code to get the result for "thing"
+                return result # the result of the function that you want cached
+
+        This means that cache will AUTOMATICALLY check if self.__thing exists, and if not, it will run get_thing()
+        and save it into self.__thing. Next time thing() is called, it won't have to run get_thing again, since self.__thing
+        already exists. Thus it automatically caches known values.
+
+        :param func_str: A string representation of a getter function from within the class that returns a
+                        value to be cached. So if class A has attribute get_thing(), this argument would be "get_thing"
+        :param cache_var: A string representation of the variable within which to cache the value received from func_str()
+                        For example, if class A wants to save the results from get_thing(), then cache_var might be
+                        "__thing", and will be saved under self.__thing
     """
-    No, we're not reading Lips, we're parsing Linked In Profiles
+    def _custom_cacher(func_to_wrap):
+        # Wrap func_to_wrap with a function that will get, save, and return the value (or return previously saved value)
+        def wrapper(self):
+            if not hasattr(self, cache_var):
+                setattr(self, cache_var, func_to_wrap(self))
+            return getattr(self, cache_var)
+
+        return wrapper
+    return _custom_cacher
+
+
+class Profile:
+    """
+        This class receives HTML from a linkedin profile webpage, and offers many functions for
+        scraping information from that webpage.
     """
 
-    def __init__(self, file_name):
+    def __init__(self, html_str):
         """
         Assumes that file is in the current working directory
         HTML file must include all expanded sections
         :param file_name:
         """
 
-        script_path = os.path.dirname(__file__)
-        file_path = os.path.join(script_path, file_name)
-        with open(file_path, encoding='utf8') as fp:
-            self.soup = BeautifulSoup(fp, "html.parser")
+        self.soup = BeautifulSoup(html_str, "html.parser")
 
-    # Tested with all profiles
-    def get_name(self):
+
+    # Parsing Functions (Tested)
+    @property
+    @cache("__name")
+    def name(self):
         """
         Finds the name of the Lip holder
         :return: string name
@@ -52,7 +82,9 @@ class LipParser:
 
         return name
 
-    def get_skills(self):
+    @property
+    @cache("__skills")
+    def skills(self):
         """
         Get skills from skills section (skills section has to be expanded before acquiring html)
 
@@ -78,7 +110,9 @@ class LipParser:
 
         return skills_array
 
-    def get_profile_url(self):
+    @property
+    @cache("__username")
+    def username(self):
         """ Gets the name of the person from the URL of the page. This is useful for when you need a unique name
          of a person.
          :return: String, unique name"""
@@ -87,14 +121,18 @@ class LipParser:
 
         return profile_url
 
-    def get_location(self):
+    @property
+    @cache("__location")
+    def location(self):
         location_tag = self.soup.find(class_="locality")
         location = None
         if location_tag is not None:
             location = location_tag.string
         return location
 
-    def get_current_company(self):
+    @property
+    @cache("__current_company")
+    def current_company(self):
         """
         Gets this persons current company with a ton of spaces at the front and newlines??? Condition later
         :return: "current company"
@@ -105,13 +143,15 @@ class LipParser:
             current_company = company_tag.find(class_="org").string
             return current_company
 
-        companies = self.get_all_companies()
+        companies = self.all_companies
         if len(companies) != 0:
             return companies[0]
 
         return self.soup.find(class_="headline title").string
 
-    def get_all_companies(self):
+    @property
+    @cache("__all_companies")
+    def all_companies(self):
         """
         Returns all companies in experience section
         :return: ["company", "company"]
@@ -128,7 +168,9 @@ class LipParser:
 
         return companies_array
 
-    def get_connection_number(self):
+    @property
+    @cache("__connection_count")
+    def connection_count(self):
         """
         Get this persons number of LinkedIn Connections
         :return: number
@@ -143,7 +185,8 @@ class LipParser:
                 cons = 500
         return cons
 
-    # Untested
+
+    # Parsing Functions (Untested)
     def get_bio(self):
         """
         Gets this persons bio w/o new lines

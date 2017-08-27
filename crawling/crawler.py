@@ -1,10 +1,11 @@
 from threading import Thread
 from selenium.webdriver import Chrome as Driver
+from bs4 import BeautifulSoup, SoupStrainer
 import queue
 
 
 class Crawler(Thread):
-    def __init__(self, crawled_profiles, website_list, driver_path, browser_timeout, max_browsers, max_depth):
+    def __init__(self, profile_manager, driver_path, website_list, **options):
         """
 
         :param website_list: A list of URL's that should be 'seeds' for finding linkedin profiles
@@ -15,15 +16,21 @@ class Crawler(Thread):
         """
         super().__init__()
 
+
+        # Options
+        self.__browser_instance_cnt = options.get("browser_timeout", 30)
+        self.__browser_timeout = options.get("max_browsers")
+        self.__max_depth = options.get("max_depth", 1)
+
+
         # Parameters
         self.__driver_path = driver_path
-        self.__browser_instance_cnt = max_browsers
-        self.__browser_timeout = browser_timeout
         self.__website_list = website_list
-        self.__max_depth = max_depth
+
 
         # Controls
-        self.__crawled_urls = [] + crawled_profiles
+        self.__profile_manager = profile_manager
+        self.__crawled_urls = []
         self.__running = False
         self.__browser_pool = queue.Queue()
         self.__browser_close_methods = []
@@ -92,6 +99,9 @@ class Crawler(Thread):
         :param depth: How many links deep the searcher will go
         :return:
         """
+        print("Sleeping...")
+        sleep(1)
+
         if depth > self.__max_depth:
             print("Hit max depth")
             return
@@ -100,37 +110,47 @@ class Crawler(Thread):
         self.__crawled_urls.append(url)
 
         browser.get(url)
-        html = browser.find_element_by_tag_name('html').get_attribute('innerHTML')
-        print("\n------\n", html, "\n-----")
-        # If it is a linkedin profile currently being crawled, save the HTML
-        if "linkedin" in url and "/in/" in url:
-            return
-        elif "www.google.com" in url:
-            return
-            # If it is a google search page currently being crawled to find more linkedin profiles
+        html = browser.page_source
 
-            link_urls = self._get_link_urls(browser)
+        # If it is a linkedin profile currently being crawled, save the HTML
+        if "linkedin" in url and "/in/" in url and url.count("/") == 4:
+            username = url.split("/in/", 1)[1]
+            print("Analyzing: ", url, username)
+            return
+
+        elif "www.google.com" in url:
+            # If it is a google search page currently being crawled to find more linkedin profiles
+            linkedin_urls = self._get_results_urls(html)
+            for url in linkedin_urls:
+                self._crawl_page(url, browser, depth=depth + 1)
+        else:
+            print("ERROR: Tried to crawl url: ", url)
 
     def _close_browsers(self):
         """ Tries to close all open browsers. """
         """ Close all open browsers """
         for closer in self.__browser_close_methods:
-            print("Closing a browser...",end="")
+            print("Closing a browser... ", end="")
             closer()
             print("Done")
 
 
-    def _get_link_urls(self, browser):
-        # Get links to linkedin profiles
-        links = browser.find_elements_by_css_selector("a")
+    def _get_results_urls(self, html):
+        # Get links to results from a google search
+        links = []
+        soup = BeautifulSoup(html)
 
+        for link in soup.find_all('cite', class_="_Rm"):
+            links.append(link.text)
+
+        return links
 
 
 if __name__ == "__main__":
     from time import sleep
     import config
     config = config.Config("Websites.txt", "crawler_settings.json")
-    crawler = Crawler(crawled_profiles=[],
+    crawler = Crawler(profile_manager=,
                       driver_path="../Resources/chromedriver.exe",
                       website_list=config.websites,
                       browser_timeout=config.browser_timeout,
