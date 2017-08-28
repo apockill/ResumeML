@@ -1,5 +1,4 @@
 import os
-from time import time
 from linkedin.profile_manager import ProfileManager
 
 """

@@ -51,7 +51,7 @@ class ProfileManager:
         no_duplicates = []
         [no_duplicates.append(skill) for skill in ordered if not no_duplicates.count(skill)]
 
-        # print("Total Skills", len(ordered), "nodupes", len(no_duplicates))
+        print("Total Skills", len(ordered), "nodupes", len(no_duplicates))
         return no_duplicates
 
     def write_new(self, html):

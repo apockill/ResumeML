@@ -57,11 +57,17 @@ class Profile:
         :return: string name
         """
 
-        try:
-            name = self.soup.find(class_="pv-top-card-section__name Sans-26px-black-85%").string
-        except AttributeError:
-            name = self.soup.find(id="name").string
 
+        name = self.soup.find(class_="pv-top-card-section__name Sans-26px-black-85%")
+        if name is not None:
+            return name.string
+
+        name = self.soup.find(id="name")
+        if name is not None:
+            return name.string
+
+        if name is None:
+            raise(TypeError("Name not found in profile HTML"))
         return name
 
     @property

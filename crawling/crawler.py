@@ -5,6 +5,7 @@ from random import randrange
 import queue
 
 from selenium.webdriver import Chrome as Driver
+from selenium.webdriver import ChromeOptions as Options
 from bs4 import BeautifulSoup
 
 
@@ -43,9 +44,8 @@ class Crawler:
 
         self.__running = True
 
-        # Open up browser window
-        self.__browser = Driver(executable_path=self.__driver_path)
-        self.__browser.set_page_load_timeout(self.__browser_timeout)
+        self._restart_browser()
+
 
         # Start crawling each URL
         for url in self.__website_list:
@@ -54,6 +54,7 @@ class Crawler:
             self._crawl_page(url)
 
         self.__browser.quit()
+        self.__browser = None
         self.__running = False
 
     def _crawl_page(self, url, depth=0):
@@ -137,26 +138,42 @@ class Crawler:
         # Sleep for a certain amount of time
 
         if "www.google.com" in url:
-            sleep(randrange(1, 3, 1))
+            rand_sleep = randrange(1, 3, 1)
+            print("Sleeping", rand_sleep, "seconds between Google Searches...")
+            sleep(rand_sleep)
         else:
             rand_sleep = randrange(self.__min_wait_time, self.__min_wait_time * 2, 1)
-            print("Sleeping", rand_sleep, "seconds")
+            print("Sleeping", rand_sleep, "seconds between profiles")
             sleep(rand_sleep)
         html = self.__browser.page_source
 
         # Check that linkedin didn't rate limit us
         if "Join to view full profiles for free" in html:
             print("ERROR: Linkedin is rate-limiting us. Closing Browser...")
-            self.__browser.quit()
-            self.__browser = None
-            sleep(randrange(45, 70, 1))
-            print("Opening new browser...")
-            self.__browser = Driver(executable_path=self.__driver_path)
-            self.__browser.set_page_load_timeout(self.__browser_timeout)
+            self._restart_browser()
             return None
         return html
 
+    def _restart_browser(self):
 
+        if self.__browser is not None:
+            self.__browser.quit()
+            self.__browser = None
+            rand_sleep = randrange(50, 75, 1)
+            print("Sleeping", rand_sleep, "seconds between browser restart...")
+            sleep(rand_sleep)
+
+        # Options
+        options = Options()
+        options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:9.0a2) Gecko/20111101 Firefox/9.0a2")
+
+        # Open up browser window
+        self.__browser = Driver(executable_path=self.__driver_path, chrome_options=options)
+        self.__browser.set_page_load_timeout(self.__browser_timeout)
+
+        agent = self.__browser.execute_script("return navigator.userAgent")
+        print("User Agent: ", agent)
+        # print("Opened new browser in ip: ", self.__browser.get("http://whatismyipaddress.com"))
 
 if __name__ == "__main__":
     from linkedin.profile_manager import ProfileManager
@@ -179,7 +196,7 @@ if __name__ == "__main__":
                       website_list=website_list,
                       browser_timeout=30,
                       max_depth=15,
-                      min_wait_time=7)
+                      min_wait_time=10)
     crawler.run()
 
 
