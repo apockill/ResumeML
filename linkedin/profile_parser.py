@@ -1,24 +1,6 @@
 from bs4 import BeautifulSoup
 import os.path
 
-"""
-Some useful commands here as reference
-
-
- print(AT.soup.contents)
-
-for child in AT.soup.find(class_="pv-profile-section experience-section ember-view").children:
-    print(child.find_all("h3"))
-
-
-print(soup.prettify())  # Print out slightly prettier version of html hell
-
-text = soup.get_text() # Get text from html
-text = text.replace(' ', '')
-
-for link in soup.find_all('a'): # Print out found links
-    print(link.get('href'))
-"""
 
 
 def cache(cache_var):
@@ -106,7 +88,9 @@ class Profile:
 
             if skill.find_all(class_="skill see-more"): continue
 
-            skills_array.append(skill.string)
+            sanitized_skill = skill.string.lower()
+            sanitized_skill = sanitized_skill.strip()
+            skills_array.append(sanitized_skill)
 
         return skills_array
 
@@ -116,10 +100,11 @@ class Profile:
         """ Gets the name of the person from the URL of the page. This is useful for when you need a unique name
          of a person.
          :return: String, unique name"""
+
         url_links = self.soup.find_all('link', rel="canonical", href=True, )
         profile_url = url_links[0]['href']
-
-        return profile_url
+        username = profile_url.split("/in/", 1)[1]
+        return username
 
     @property
     @cache("__location")
@@ -135,6 +120,12 @@ class Profile:
     def current_company(self):
         """
         Gets this persons current company with a ton of spaces at the front and newlines??? Condition later
+
+        Corner Cases:
+            - It will attempt to return the explicit current company
+            - If no company is EXPLICITLY stated, look for current position
+            - If no current position is EXPLICITLY stated, look for latest company under Experience
+            - If no Experience, return None
         :return: "current company"
         """
 
@@ -147,7 +138,11 @@ class Profile:
         if len(companies) != 0:
             return companies[0]
 
-        return self.soup.find(class_="headline title").string
+        companies = self.soup.find(class_="headline title")
+        if companies is not None:
+            return companies.string
+
+        return None
 
     @property
     @cache("__all_companies")
@@ -173,9 +168,15 @@ class Profile:
     def connection_count(self):
         """
         Get this persons number of LinkedIn Connections
+        Corner Cases:
+            Some profiles have "Influencer" instead of a connection number. These default to None (Currently)
         :return: number
         """
         conn_tag = self.soup.find(class_="member-connections")
+
+        if conn_tag is None:
+            return None
+
         cons = 0
         for string in conn_tag.strings:
             if string.isdigit():
@@ -183,6 +184,7 @@ class Profile:
 
             elif string == "500+":
                 cons = 500
+
         return cons
 
 

@@ -1,5 +1,5 @@
 import os
-
+from time import time
 from linkedin.profile_manager import ProfileManager
 
 """
@@ -9,24 +9,20 @@ Eventually it'll be where we run the main program.
 
 
 profiles_dir = os.path.join(os.getcwd(), "ScrapedProfiles")
+reader = ProfileManager(profiles_dir)
 
 # Open all files in the ScrapedProfiles directory, parse, and print them
-for profile in ProfileManager(profiles_dir):
 
-    print("Name: ", profile.name)
-    print("URL Name: ", profile.username)
-    print("Skills: ", profile.skills)
-    print("Current Company: ", profile.current_company)
-    print("Companies: ", profile.all_companies)
-    print("Location: ", profile.location)
-    print("Connections : ", profile.connection_count)
-
-    # print("Bio: ", profile.get_bio())
-    # print("Certifications: ", profile.get_certification())
-    # print("Languages: ", profile.get_languages())
-    # print("Location: ", profile.get_location())
-    # print("Projects: ", profile.get_projects())
-    # print("Media #: ", profile.get_media_number())
+for profile in reader:
+    print(profile.name)
+    print(profile.username)
+    print(profile.skills)
+    print(profile.current_company)
+    print(profile.all_companies)
+    print(profile.location)
+    print(profile.connection_count)
 
     print("\n\n")
 
+print("All Users: ", reader.users)
+print("All Skills: ", reader.skills)
