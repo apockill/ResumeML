@@ -19,14 +19,15 @@ class ProfileManager:
         self.profiles = []
         self.x = 3
         # Load all profile in the profiles_dir
+        print("Loading", len(os.listdir(profiles_dir)), "profiles into memory...")
         for file in os.listdir(profiles_dir):
             profile_path = os.path.join(profiles_dir, file)
 
             with open(profile_path, encoding='utf8') as html_file:
-                print("Reading ", profile_path)
                 html_str = html_file.read()
 
             self.profiles.append(Profile(html_str))
+        print("Done Loading")
 
     def __iter__(self):
         for profile in self.profiles:
@@ -46,9 +47,8 @@ class ProfileManager:
         ordered = sorted(skills, key=skills.count, reverse=True)
         no_duplicates = []
         [no_duplicates.append(skill) for skill in ordered if not no_duplicates.count(skill)]
-        print(len(skills))
 
-        print(len(no_duplicates))
+        # print("Total Skills", len(ordered), "nodupes", len(no_duplicates))
         return no_duplicates
 
     def write_new(self, html):

@@ -1,7 +1,10 @@
 from threading import Thread
+from time import sleep
+from urllib.parse import urljoin
+import queue
+
 from selenium.webdriver import Chrome as Driver
 from bs4 import BeautifulSoup
-import queue
 
 
 class Crawler:
@@ -11,7 +14,6 @@ class Crawler:
         :param website_list: A list of URL's that should be 'seeds' for finding linkedin profiles
         :param driver_path: The path to the browser driver that is being used for scraping
         :param browser_timeout: How long a browser will wait (in seconds) before giving up and trying a new URL
-        :param max_browsers: How many browsers can be open and scraping at once. TOO MANY AND MAY BE IP BANNED
         :param max_depth: How many links deep the crawler will go into a URL from the website_list
         :param min_wait_time: How many seconds to wait between requests
         """
@@ -19,7 +21,6 @@ class Crawler:
 
 
         # Options
-        self.__browser_instance_cnt = options.get("max_browsers", 1)
         self.__browser_timeout = options.get("browser_timeout", 30)
         self.__max_depth = options.get("max_depth", 1)
         self.__min_wait_time = options.get("min_wait_time", 3)  # Time
@@ -33,56 +34,29 @@ class Crawler:
         self.__profile_manager = profile_manager
         self.__crawled_urls = []
         self.__running = False
-        self.__browser_pool = queue.Queue()
+        self.__browser = None
         self.__browser_close_methods = []
-
 
     def run(self):
         """ This runs in a new thread when crawler.run() is called """
 
         self.__running = True
 
-        # Open up all browser windows
-        for i in range(self.__browser_instance_cnt):
-            if not self.__running: break  # End prematurely
-
-            browser = Driver(executable_path=self.__driver_path)
-
-            # Save the close method for later use
-            self.__browser_close_methods.append(browser.quit)
-
-            # Set the page timeout
-            browser.set_page_load_timeout(self.__browser_timeout)
-            self.__browser_pool.put(browser)
-
-        crawl_threads = []
-
-        # Start crawling the pages and return the given browser to the pool when finished
-        def crawl_and_return_to_pool(url, browser):
-            self._crawl_page(url, browser)
-            self.__browser_pool.put(browser)
+        # Open up browser window
+        self.__browser = Driver(executable_path=self.__driver_path)
+        self.__browser.set_page_load_timeout(self.__browser_timeout)
 
         # Start crawling each URL
-        print("Going through url in",  self.__website_list)
+        print("Going through all URLS in search:",  self.__website_list)
         for url in self.__website_list:
             if not self.__running: break  # End prematurely
 
-            # Wait for an unused browser instance
-            browser = self.__browser_pool.get()
+            self._crawl_page(url)
 
-            # Start crawling
-            thread = Thread(target = crawl_and_return_to_pool, args=(url, browser))
-            thread.start()
-            crawl_threads.append(thread)
-
-        # Wait for crawling to finish
-        for thread in crawl_threads:
-            thread.join()
-
-        self._close_browsers()
+        self.__browser.quit()
         self.__running = False
 
-    def _crawl_page(self, url, browser, depth=0):
+    def _crawl_page(self, url, depth=0):
         """
         If the url is a linkedin url, it will check if it is a profile, save it, and add it to crawled URL's.
 
@@ -98,9 +72,12 @@ class Crawler:
         if depth > self.__max_depth:
             print("Hit max depth")
             return
+
         if not self.__running: return  # End prematurely
+
         if url in self.__crawled_urls:
             print("ERROR: Tried to crawl the same URL twice: ", url)
+            return
         self.__crawled_urls.append(url)
 
 
@@ -111,15 +88,15 @@ class Crawler:
             # Check that this profile has not been parsed before
             username = url.split("/in/", 1)[1]
             if username in self.__profile_manager.users:
-                print("Tried to analyze", username, "when it was already scraped!")
+                print("Skipped analyzing ", username, "because it was already scraped!")
                 return
             print("Analyzing: ", url, username)
 
             # Load the page
-            print("Sleeping...")
-            sleep(self.__min_wait_time)
-            browser.get(url)
-            html = browser.page_source
+            html = self._load_page(url)
+
+            # If linkedin rate-limited us, continue to the next profile
+            if html is None: return
 
             # Save HTML to a file
             self.__profile_manager.write_new(html)
@@ -128,26 +105,22 @@ class Crawler:
 
         elif "www.google.com" in url:
             # Load the page
-            print("Sleeping...")
-            sleep(self.__min_wait_time)
-            browser.get(url)
-            html = browser.page_source
+            html = self._load_page(url)
 
             # If it is a google search page currently being crawled to find more linkedin profiles
             linkedin_urls = self._get_results_urls(html)
             for url in linkedin_urls:
-                self._crawl_page(url, browser, depth=depth + 1)
+                self._crawl_page(url, depth=depth + 1)
+
+            # Get the "Next" link to go to the next page of results
+            soup = BeautifulSoup(html, "html5lib")
+            next_link = soup.find("a", {"id": "pnnext"})
+            if next_link is not None:
+                next_link = urljoin("http://www.google.com", next_link["href"])
+                self._crawl_page(next_link, depth=depth + 1)
+
         else:
             print("ERROR: Tried to crawl url: ", url)
-
-    def _close_browsers(self):
-        """ Tries to close all open browsers. """
-        """ Close all open browsers """
-        for closer in self.__browser_close_methods:
-            print("Closing a browser... ", end="")
-            closer()
-            print("Done")
-
 
     def _get_results_urls(self, html):
         # Get links to results from a google search
@@ -159,23 +132,54 @@ class Crawler:
 
         return links
 
+    def _load_page(self, url):
+        # Load the page
+        self.__browser.get(url)
+
+        # Sleep for a certain amount of time
+        print("Sleeping...")
+        if "www.google.com" in url:
+            sleep(1)
+        else:
+            sleep(self.__min_wait_time)
+        html = self.__browser.page_source
+
+        # Check that linkedin didn't rate limit us
+        if "Join to view full profiles for free" in html:
+            print("ERROR: Linkedin is rate-limiting us. Closing Browser...")
+            self.__browser.quit()
+            self.__browser = None
+            sleep(30)
+            print("Opening new browser...")
+            self.__browser = Driver(executable_path=self.__driver_path)
+            self.__browser.set_page_load_timeout(self.__browser_timeout)
+            return None
+        return html
+
+
 
 if __name__ == "__main__":
-    from time import sleep
-    import os
-
     from linkedin.profile_manager import ProfileManager
-    import config
 
+    # Get the list of websites from the file
+    website_list = []
+    with open("Websites.txt", "r") as file:
+        for line in file:
+            line = line.replace('\n', '')
+            website_list.append(line)
+
+    # Open existing profiles
     profile_manager = ProfileManager("../ScrapedProfiles")
 
-    config = config.Config("Websites.txt", "crawler_settings.json")
+
+    # config = config.Config("Websites.txt", "crawler_settings.json")
+    # Run the crawler
     crawler = Crawler(profile_manager=profile_manager,
                       driver_path="../Resources/chromedriver.exe",
-                      website_list=config.websites,
-                      browser_timeout=config.browser_timeout,
-                      max_browsers=config.max_browser_instances,
-                      max_depth=config.max_depth)
+                      website_list=website_list,
+                      browser_timeout=30,
+                      max_depth=15,
+                      min_wait_time=3)
     crawler.run()
 
 

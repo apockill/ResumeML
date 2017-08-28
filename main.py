@@ -21,8 +21,7 @@ for profile in reader:
     print(profile.all_companies)
     print(profile.location)
     print(profile.connection_count)
-
     print("\n\n")
 
-print("All Users: ", reader.users)
+# print("All Users: ", reader.users)
 print("All Skills: ", reader.skills)

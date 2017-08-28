@@ -101,7 +101,7 @@ class Profile:
          of a person.
          :return: String, unique name"""
 
-        url_links = self.soup.find_all('link', rel="canonical", href=True, )
+        url_links = self.soup.find_all('link', rel="canonical", href=True)
         profile_url = url_links[0]['href']
         username = profile_url.split("/in/", 1)[1]
         return username
