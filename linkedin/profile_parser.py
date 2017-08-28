@@ -45,7 +45,7 @@ class Profile:
         :param file_name:
         """
 
-        self.soup = BeautifulSoup(html_str, "html.parser")
+        self.soup = BeautifulSoup(html_str, "lxml")
 
 
     # Parsing Functions (Tested)

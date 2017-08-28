@@ -1,6 +1,7 @@
 from threading import Thread
 from time import sleep
 from urllib.parse import urljoin
+from random import randrange
 import queue
 
 from selenium.webdriver import Chrome as Driver
@@ -47,10 +48,9 @@ class Crawler:
         self.__browser.set_page_load_timeout(self.__browser_timeout)
 
         # Start crawling each URL
-        print("Going through all URLS in search:",  self.__website_list)
         for url in self.__website_list:
             if not self.__running: break  # End prematurely
-
+            print("Starting Crawling on Seed: ", url)
             self._crawl_page(url)
 
         self.__browser.quit()
@@ -76,7 +76,7 @@ class Crawler:
         if not self.__running: return  # End prematurely
 
         if url in self.__crawled_urls:
-            print("ERROR: Tried to crawl the same URL twice: ", url)
+            print("Tried to crawl the same URL twice", url)
             return
         self.__crawled_urls.append(url)
 
@@ -90,7 +90,7 @@ class Crawler:
             if username in self.__profile_manager.users:
                 print("Skipped analyzing ", username, "because it was already scraped!")
                 return
-            print("Analyzing: ", url, username)
+            print("Analyzing #", len(self.__profile_manager), url, username)
 
             # Load the page
             html = self._load_page(url)
@@ -100,8 +100,6 @@ class Crawler:
 
             # Save HTML to a file
             self.__profile_manager.write_new(html)
-
-            return
 
         elif "www.google.com" in url:
             # Load the page
@@ -113,7 +111,7 @@ class Crawler:
                 self._crawl_page(url, depth=depth + 1)
 
             # Get the "Next" link to go to the next page of results
-            soup = BeautifulSoup(html, "html5lib")
+            soup = BeautifulSoup(html, "lxml")
             next_link = soup.find("a", {"id": "pnnext"})
             if next_link is not None:
                 next_link = urljoin("http://www.google.com", next_link["href"])
@@ -125,7 +123,7 @@ class Crawler:
     def _get_results_urls(self, html):
         # Get links to results from a google search
         links = []
-        soup = BeautifulSoup(html, "html5lib")
+        soup = BeautifulSoup(html, "lxml")
 
         for link in soup.find_all('cite', class_="_Rm"):
             links.append(link.text)
@@ -137,11 +135,13 @@ class Crawler:
         self.__browser.get(url)
 
         # Sleep for a certain amount of time
-        print("Sleeping...")
+
         if "www.google.com" in url:
-            sleep(1)
+            sleep(randrange(1, 3, 1))
         else:
-            sleep(self.__min_wait_time)
+            rand_sleep = randrange(self.__min_wait_time, self.__min_wait_time * 2, 1)
+            print("Sleeping", rand_sleep, "seconds")
+            sleep(rand_sleep)
         html = self.__browser.page_source
 
         # Check that linkedin didn't rate limit us
@@ -149,7 +149,7 @@ class Crawler:
             print("ERROR: Linkedin is rate-limiting us. Closing Browser...")
             self.__browser.quit()
             self.__browser = None
-            sleep(30)
+            sleep(randrange(45, 70, 1))
             print("Opening new browser...")
             self.__browser = Driver(executable_path=self.__driver_path)
             self.__browser.set_page_load_timeout(self.__browser_timeout)
@@ -179,7 +179,7 @@ if __name__ == "__main__":
                       website_list=website_list,
                       browser_timeout=30,
                       max_depth=15,
-                      min_wait_time=3)
+                      min_wait_time=7)
     crawler.run()
 
 

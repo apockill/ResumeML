@@ -29,6 +29,9 @@ class ProfileManager:
             self.profiles.append(Profile(html_str))
         print("Done Loading")
 
+    def __len__(self):
+        return len(self.profiles)
+
     def __iter__(self):
         for profile in self.profiles:
             yield profile
@@ -66,8 +69,8 @@ class ProfileManager:
 
         with open(write_to, "wb") as new_file:
             new_file.write(str(html).encode("utf-8"))
-            # print(str(html), file=new_file)
 
+        self.profiles.append(profile)
 
 
 
