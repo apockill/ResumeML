@@ -1,4 +1,6 @@
 from bs4 import BeautifulSoup
+
+from lxml.html.soupparser import fromstring
 import os.path
 
 

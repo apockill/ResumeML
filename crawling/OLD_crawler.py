@@ -178,7 +178,6 @@ class Crawler(Thread):
                     next_progress_step = (1 / len(link_urls)) * progress_step
                     self._crawl_page(link_url, browser, next_progress_step, depth=depth+1)
         except TimeoutException:
-            # TODO(velovix): Add support for partially loaded pages
             self.failed_page_cnt += 1
             print("Warning: page " + url + " timed out")
         except URLError:

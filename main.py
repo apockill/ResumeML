@@ -1,26 +1,29 @@
 import os
+from time import time
+
 from linkedin.profile_manager import ProfileManager
 
-"""
-This module doesn't have anything important yet, it's just for testing existing stuff. 
-Eventually it'll be where we run the main program.
-"""
 
+if __name__ == "__main__":
+    print("Loading all profiles...")
+    start = time()
+    profiles_dir = os.path.join(os.getcwd(), "ScrapedProfiles")
+    reader = ProfileManager(profiles_dir)
+    print("Loaded", len(reader), "profiles in", time() - start, "seconds")
 
-profiles_dir = os.path.join(os.getcwd(), "ScrapedProfiles")
-reader = ProfileManager(profiles_dir)
+    # Open all files in the ScrapedProfiles directory, parse, and print them
 
-# Open all files in the ScrapedProfiles directory, parse, and print them
+    start = time()
+    print("Processing all profiles...")
+    for profile in reader:
+        profile.name
+        profile.username
+        profile.skills
+        profile.current_company
+        profile.all_companies
+        profile.location
+        profile.connection_count
+    print("Processed all profiles in", time() - start, "seconds")
 
-for profile in reader:
-    print(profile.name)
-    print(profile.username)
-    print(profile.skills)
-    print(profile.current_company)
-    print(profile.all_companies)
-    print(profile.location)
-    print(profile.connection_count)
-    print("\n\n")
-
-# print("All Users: ", reader.users)
-print("All Skills: ", reader.skills)
+    # print("All Users: ", reader.users)
+    print("All Skills: ", reader.skills)
