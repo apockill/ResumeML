@@ -1,26 +1,12 @@
 import os
 import ujson as json
-from multiprocessing import Process, Pipe
 import sys
 import pickle
 
 from linkedin.html_profile import HTMLProfile
 from linkedin.json_profile import JSONProfile
-from linkedin.profile_utils import cache
 
-# def worker(html_list, output_pipe, pre_cache_profiles=False):
-#     """ This class will get files from the work_queue, parse the HTML,
-#     then add the Profile to self.profiles"""
-#
-#     sys.setrecursionlimit(15000)  # So that pickling BeautifulSoup objects will work
-#     finished_profiles = []
-#     for html in html_list:
-#         profile = HTMLProfile(html)
-#
-#         if pre_cache_profiles:
-#             profile.pre_cache_all()
-#         finished_profiles.append(profile)
-#     output_pipe.send(finished_profiles)
+
 
 
 
@@ -138,35 +124,6 @@ class ProfileManager:
                 profile.pre_cache_all()
         return
 
-        # # My shitty multiprocessing code that sometimes works
-        # def split(lst, n_parts):
-        #     """ Split a list into even parts (for divvying work to workers"""
-        #     k, m = divmod(len(lst), n_parts)
-        #     return (lst[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n_parts))
-        #
-        # worker_cnt = 10
-        #
-        # html_list = []
-        # parent_conn, child_con = Pipe()
-        # for file in os.listdir(self.profiles_dir):
-        #     profile_path = os.path.join(self.profiles_dir, file)
-        #     with open(profile_path, encoding='utf8') as html_file:
-        #         html_str = html_file.read()
-        #     html_list.append(html_str)
-        #
-        # # Start the workers
-        # worker_pool = []
-        # for html_for_worker in split(html_list, worker_cnt):
-        #     new_worker = Process(target=worker, args=(html_for_worker, child_con, pre_cache_profiles))
-        #     new_worker.start()
-        #     worker_pool.append(new_worker)
-        #
-        # # Wait for all work to be done, then rejoin all the threads
-        # while len(self.profiles) != len(html_list):
-        #     self.profiles += parent_conn.recv()
-        #     print("ProfileManager Loaded", len(self.profiles), "profiles")
-        #
-        # [worker.join(1) for worker in worker_pool]
 
     def _load_state(self, load_from):
         """ Load a *.pickle of self.profiles """
