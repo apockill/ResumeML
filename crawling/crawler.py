@@ -6,57 +6,41 @@ import os
 from selenium.webdriver import Chrome as Driver
 from selenium.webdriver import ChromeOptions as Options
 from bs4 import BeautifulSoup
+from fake_useragent import UserAgent
 
 
 class Crawler:
-    def __init__(self, profile_manager, driver_path, website_list, **options):
+    def __init__(self, profile_manager, driver_path, config):
         """
-
-        :param website_list: A list of URL's that should be 'seeds' for finding linkedin profiles
+        :param profile_manager: A ProfileManager object with all profiles loaded already
         :param driver_path: The path to the browser driver that is being used for scraping
-        :param browser_timeout: How long a browser will wait (in seconds) before giving up and trying a new URL
-        :param min_wait_time: How many seconds to wait between requests
-        :param max_urls_between_break: How many profiles can be crawled before the program takes a break
+        :param config: A CrawlerConfig object
         """
-        super().__init__()
-
-
-        # Options
-        self.__browser_timeout = options.get("browser_timeout", 30)
-        self.__min_wait_time = options.get("min_wait_time", 3)  # Time
-        self.__max_urls_between_break = options.get("max_urls_between_break", 50)  # URLS crawled since a restart
 
         # Parameters
-        self.__driver_path = driver_path
-        self.__website_list = website_list
-        self.__profiles_since_break = 0
+        self.cfg = config
+        self.driver_path = driver_path
 
         # Controls
-        self.__profile_manager = profile_manager
-        self.__crawled_urls = []
-        self.__running = False
-        self.__browser = None
-        self.__browser_close_methods = []
+        self.profile_manager = profile_manager
+        self.crawled_urls = []
+        self.profiles_since_break = 0
+        self.browser = None
+        self.current_agent = None
 
     def run(self):
         """ This runs in a new thread when crawler.run() is called """
 
-        self.__running = True
-
-        self._restart_browser()
-
+        self._start_browser()
 
         # Start crawling each URL
-        for url in self.__website_list:
-            if not self.__running: break  # End prematurely
+        for url in self.cfg.websites:
             print("Starting Crawling on Seed: ", url)
             self._crawl_page(url)
 
-        self.__browser.quit()
-        self.__browser = None
-        self.__running = False
+        self._close_browser()
 
-    def _crawl_page(self, url, depth=0):
+    def _crawl_page(self, url):
         """
         If the url is a linkedin url, it will check if it is a profile, save it, and add it to crawled URL's.
 
@@ -64,27 +48,19 @@ class Crawler:
         It will also find "next search page" arrows on google, and crawl those as well.
 
         :param url: The link to crawl
-        :param browser: What browser object will open and render the link
-        :param depth: How many links deep the searcher will go
         :return:
         """
 
-        if not self.__running: return  # End prematurely
-
-        if url in self.__crawled_urls:
-            print("Tried to crawl the same URL twice", url)
+        if url in self.crawled_urls:
+            print("Tried to crawl the same URL twice in one session", url)
             return
-        self.__crawled_urls.append(url)
 
-        if self.__profiles_since_break > self.__max_urls_between_break - randint(0, 2):
-            print("Crawled", self.__profiles_since_break, "urls since the last restart, time to take a quick break!")
-            self.__browser.quit()
-            self.__browser = None
-            rand_sleep = uniform(30, 90)
-            print("Sleeping ", rand_sleep, "seconds for a break!")
-            sleep(rand_sleep)
-            self.__profiles_since_break = 0
-            self._restart_browser()
+        self.crawled_urls.append(url)
+
+        if self.profiles_since_break > randint(*self.cfg.urls_between_break):
+            self._take_break(self.cfg.sleep_random_break,
+                             "Taking break after " + str(self.profiles_since_break) + " profiles !")
+
 
 
         # If it is a linkedin profile currently being crawled, save the HTML
@@ -92,44 +68,44 @@ class Crawler:
 
             # Check that this profile has not been parsed before
             username = url.split("/in/", 1)[1]
-            if username in self.__profile_manager.users:
-                print("Skipped analyzing ", username, "because it was already scraped!")
+            if username in self.profile_manager.users:
+                print("Already crawled: ", username)
                 return
-            print("Analyzing #", len(self.__profile_manager), url, username)
+
+            print("Analyzing Profile #", len(self.profile_manager), url, username)
 
             # Load the page
             html = self._load_page(url)
-            self.__profiles_since_break += 1
+            self.profiles_since_break += 1
 
             # If linkedin rate-limited us, continue to the next profile
             if html is None: return
 
             # Save HTML to a file
+            # TODO: Fix this
             try:
-                self.__profile_manager.write_new(html)
+                self.profile_manager.write_new_html_profile(html)
             except Exception as e:
-                print("ERROR: While saving HTML: ", e, " in url: ", url)  # TODO: Fix this
+                print("ERROR: While saving HTML: ", e, " in url: ", url)
 
-            # Try to prevent rate limiting
-            self.__browser.delete_all_cookies()
         elif "www.google.com" in url:
             # Load the page
             html = self._load_page(url)
 
             # If it is a google search page currently being crawled to find more linkedin profiles
             linkedin_urls = self._get_results_urls(html)
-            shuffle(linkedin_urls)  # Makes it harder to be tracked
+            shuffle(linkedin_urls)
             for url in linkedin_urls:
-                self._crawl_page(url, depth=depth + 1)
+                self._crawl_page(url)
 
             # Get the "Next" link to go to the next page of results
             soup = BeautifulSoup(html, "lxml")
             next_link = soup.find("a", {"id": "pnnext"})
             if next_link is not None:
                 next_link = urljoin("http://www.google.com", next_link["href"])
-                self._crawl_page(next_link, depth=depth + 1)
+                self._crawl_page(next_link)
         else:
-            print("ERROR: Tried to crawl url: ", url)
+            print("ERROR: Tried to crawl bad url: ", url)
 
     def _get_results_urls(self, html):
         # Get links to results from a google search
@@ -144,47 +120,73 @@ class Crawler:
     def _load_page(self, url):
         # Load the page
         try:
-            self.__browser.get(url)
+            self.browser.get(url)
+            html = self.browser.page_source
         except TimeoutError:
-            print("ERROR: Page has timed out. Taking a long break of 200 seconds")
-            self.__browser.quit()
-            self.__browser = None
-            sleep(200)
-            self._restart_browser()
-            
-        html = self.__browser.page_source
+            self._take_break(self.cfg.sleep_timeout, "Page has timed out. Taking a long break!")
+            return
+
 
         # Sleep for a certain amount of time
         if "www.google.com" in url:
-            rand_sleep = randint(1, 3)
-            print("Sleeping", rand_sleep, "seconds between Google Searches...")
-            sleep(rand_sleep)
+            self._sleep(self.cfg.sleep_google_search, "Google Search")
         else:
-            rand_sleep = randint(self.__min_wait_time, self.__min_wait_time * 2)
-            print("Sleeping", rand_sleep, "seconds between profiles")
-            sleep(rand_sleep / 2.0)
-            self.__browser.back()
-            sleep(rand_sleep / 2.0)
+            self._sleep(self.cfg.sleep_linkedin, "Linkedin Profile")
 
 
         # Check that linkedin didn't rate limit us
         if "Join to view full profiles for free" in html:
-            print("ERROR: Linkedin is rate-limiting us. Closing Browser...")
-            self._restart_browser()
+            self._take_break(self.cfg.sleep_rate_limiting, "Linkeding is rate-limiting us. Taking a break.")
             return None
 
-        if randint(0, 5) == 0:
-            self.__browser.delete_all_cookies()
+
         return html
 
-    def _restart_browser(self):
+    def _sleep(self, interval, reason):
+        """
+        A sleep helper function that prints the reason its sleeping, and the random interval of sleep
+        :param interval: A tuple (mintime, maxtime)
+        :param reason: Why the sleep is happening (for a pretty print)
+        """
 
-        if self.__browser is not None:
-            self.__browser.quit()
-            self.__browser = None
-            rand_sleep = uniform(60, 120)
-            print("Sleeping", rand_sleep, "seconds between browser restart...")
-            sleep(rand_sleep)
+        # TODO: Add a self.browser.back() or something here to fake human use, and/or self.browser.delete_all_cookies()
+        rand_interval = uniform(*interval)
+        print("Sleeping", rand_interval, "seconds: ", reason)
+
+        # If the browser isn't open, do a normal sleep
+        if self.browser is None:
+            sleep(rand_interval)
+            return
+
+        # If the browser is closed, sleep halfway then do a random action, then continue sleeping
+        sleep(rand_interval / 2)
+
+        # Do a random action while sleeping
+        actions = [self.browser.back,
+                   lambda: self.browser.set_window_size(randint(700, 1080), randint(700, 1080)),
+                   lambda: self.browser.set_window_position(randint(0, 300), randint(0, 300)),
+                   self.browser.maximize_window,
+                   self.browser.delete_all_cookies]
+
+        action = choice(actions)
+        print("Performing random action: ", action)
+        action()
+        sleep(rand_interval / 2)
+
+    def _take_break(self, break_interval, reason):
+        """ Shut down browser, restart with new browser """
+        self._close_browser()
+        self._sleep(break_interval, reason)
+        self.profiles_since_break = 0
+        self._start_browser()
+
+
+    def _close_browser(self):
+        self.browser.quit()
+        self.browser = None
+
+    def _start_browser(self):
+        assert self.browser is None, "Browser must not exist in order to call _start_browser!"
 
         # Load a user profile from normal chrome
         user_profile = "C:\\Users\\Alex Thiel\\AppData\\Local\\Google\\Chrome\\User Data\\Default"
@@ -198,77 +200,57 @@ class Crawler:
                              "safebrowsing-disable-download-protection",
                              "safebrowsing-disable-auto-update",
                              "disable-client-side-phishing-detection"])
-        os.environ["webdriver.chrome.driver"] = self.__driver_path
+        os.environ["webdriver.chrome.driver"] = self.driver_path
 
         # Add variation to the browser
-        if randint(0, 1):
+        if randint(0, 2) == 1:
             options.add_argument("--incognito")
             print("Option: Incognito")
-        if randint(0, 1):
+        if randint(0, 2) == 1:
             options.add_argument("--disable-extensions")
             print("Option: Disabling Extensions")
-        if randint(0, 1):
+        if randint(0, 2) == 1:
             options.add_argument("--disable-plugins-discovery")
             print("Option: Disabling plugins discovery")
-        if randint(0, 1):
-            options.add_argument("--start-maximized")
-            print("Option: Starting maximized")
+        if randint(0, 2) == 1:
+            options.add_argument('--no-referrers')
+            print("Option: No Referrers")
+        if randint(0, 2) == 1:
+            options.add_argument('--disable-web-security')
+            print("Option: Disabled web security")
+        if randint(0, 2) == 1:
+            options.add_argument('--allow-running-insecure-content')
+            print("Option: Allowing running insecure content")
+        if randint(0, 2) == 1:
+            options.add_experimental_option('prefs', {
+                'credentials_enable_service': False,
+                'profile': {'password_manager_enabled': False}
+            })
+            print("Options: Disabled Password Manager")
 
-        possible_agents = [None,
-             # Most recent user agents
-             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36",
-             "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.85 Safari/537.36",
-             "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36",
-             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:34.0) Gecko/20100101 Firefox/34.0",
-             "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36",
-             "Mozilla/5.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/5.0)",
-             "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.112 Safari/535.1",
-             "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:30.0) Gecko/20100101 Firefox/30.0",
-             "Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko",
-             # Most popular user agents
-             "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; FSL 7.0.6.01001)",
-             "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; FSL 7.0.7.01001)",
-             "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; FSL 7.0.5.01003)",
-             "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0",
-             "Mozilla/5.0 (Windows NT 5.1; rv:13.0) Gecko/20100101 Firefox/13.0.1",
-             "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:11.0) Gecko/20100101 Firefox/11.0",
-             "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0; .NET CLR 1.0.3705)",
-             "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:13.0) Gecko/20100101 Firefox/13.0.1",
-             "Opera/9.80 (Windows NT 5.1; U; en) Presto/2.10.289 Version/12.01",
+        # options.add_experimental_option('prefs', {'profile.managed_default_content_settings.images': 2})
 
-             # Old, possibly bad user agents
-             "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",
-             "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2226.0 Safari/537.36",
-             "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.13 (KHTML, like Gecko) Chrome/24.0.1290.1 Safari/537.13",
-             "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2224.3 Safari/537.36",
-             "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.3 (KHTML, like Gecko) Chrome/19.0.1061.0 Safari/536.3",
-             "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1467.0 Safari/537.36",
-             "Mozilla/5.0 (X11; NetBSD) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.116 Safari/537.36",
-             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.93 Safari/537.36",
-             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_7) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.41 Safari/535.1",
-             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36"]
-
-        """ BAD
-        "Mozilla/5.0 (X11; CrOS i686 3912.101.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.116 Safari/537.36",
-        
-        """
-        agent = choice(possible_agents)
-        if agent is not None:
-            options.add_argument("user-agent=" + agent)
-        print("Option: Agent", agent)
+        agent = UserAgent().random
+        options.add_argument("user-agent=" + agent)
+        self.current_agent = agent
+        print("Option: Agent:", agent)
 
         # Open up browser window
-        self.__browser = Driver(executable_path=self.__driver_path, chrome_options=options)
-        self.__browser.set_page_load_timeout(self.__browser_timeout)
-        self.__browser.delete_all_cookies()
-        self.__browser.set_window_size(randint(700, 1080), randint(700, 1080))
-        self.__browser.set_window_position(randint(0, 300), randint(0, 300))
+        self.browser = Driver(executable_path=self.driver_path, chrome_options=options)
+        self.browser.set_page_load_timeout(self.cfg.browser_timeout)
+        self.browser.delete_all_cookies()
 
+        if randint(0, 2) == 1:
+            print("Option: Start Maximized")
+            self.browser.maximize_window()
+        else:
+            self.browser.set_window_size(randint(700, 1080), randint(700, 1080))
+            self.browser.set_window_position(randint(0, 300), randint(0, 300))
 
-        # print("Opened new browser in ip: ", self.__browser.get("http://whatismyipaddress.com"))
 
 if __name__ == "__main__":
     from linkedin.profile_manager import ProfileManager
+    from crawling.config import CrawlerConfig
 
     # Get the list of websites from the file
     website_list = []
@@ -280,15 +262,12 @@ if __name__ == "__main__":
     # Open existing profiles
     profile_manager = ProfileManager("../ScrapedProfiles")
 
+    config = CrawlerConfig()
 
-    # config = config.Config("Websites.txt", "crawler_settings.json")
     # Run the crawler
     crawler = Crawler(profile_manager=profile_manager,
                       driver_path="../Resources/chromedriver.exe",
-                      website_list=website_list,
-                      browser_timeout=30,
-                      min_wait_time=10,
-                      max_urls_between_break=15)
+                      config=config)
     crawler.run()
 
 
