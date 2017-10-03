@@ -68,7 +68,6 @@ class HTMLProfile:
         if len(skills_html) == 0:
             skills_html = self.soup.find_all(class_="skill")
 
-
         skills_array = []
 
         for skill in skills_html:
