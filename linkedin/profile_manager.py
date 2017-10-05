@@ -57,13 +57,7 @@ class ProfileManager:
         for profile in self.profiles:
             skills += profile.skills
 
-        ordered = sorted(skills, key=skills.count, reverse=True)
-        no_duplicates = []
-        [no_duplicates.append(skill) for skill in ordered if not no_duplicates.count(skill)]
-
-
-        print("Total Skills", len(ordered), "nodupes", len(no_duplicates))
-        return no_duplicates
+        return skills
 
     def save_state(self, save_to):
         """

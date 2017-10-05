@@ -77,27 +77,6 @@ class CrawlerConfig:
 
         return web_list
 
-    # @websites.setter
-    # def websites(self, website_list):
-    #     """
-    #     Saves the website list to a file. If the file doesn't exist, it will create it.
-    #     :param website_list: ['website', 'website']
-    #     :return: Nothing
-    #     """
-    #     file_str = ""
-    #     for line in website_list:
-    #         file_str += line + "\n"
-    #
-    #     with self.lock:
-    #         with open(self.WEBSITES_FILE, 'w') as file:
-    #             file.write(file_str)
-
-
-
-
-
-
-
     # Helper Functions
     def __save_to_settings(self, key, val):
         """ Saves a settings to the settings file"""
