@@ -71,6 +71,7 @@ def train_neural_network(train_inputs, train_outputs, test_inputs, test_outputs,
 
                 _, c = sess.run([optimizer, cost], feed_dict={input_layer: batch_x, output: batch_y})
                 epoch_loss += c
+                print(c)
 
                 i += batch_size
 
