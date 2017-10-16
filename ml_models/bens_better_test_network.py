@@ -12,7 +12,7 @@ train_outputs = data["outputs"][:-num_tests]
 test_inputs = data["inputs"][-num_tests:]
 test_outputs = data["outputs"][-num_tests:]
 
-# Hack to make it work better maybe?
+# Hack to make it work better maybe? (because our output works best with two output neurons)
 print(""""Fixing" Labels...""")
 train_outputs_temp = np.empty([0, 2], int)
 test_outputs_temp = np.empty([0, 2], int)
@@ -49,6 +49,8 @@ num_epochs = 1
 x = tf.placeholder(tf.float32, shape=[None, input_size[1]], name="x")
 y = tf.placeholder(tf.float32, shape=[None, output_size[1]], name="y")
 
+# Setup structure of network using tf
+
 
 def neural_network_model(data):
     """
@@ -79,6 +81,8 @@ def neural_network_model(data):
     output = tf.add(tf.matmul(l3, output_layer['weights']), output_layer['biases'])
 
     return output
+
+# Train the neural network using all the settings
 
 
 def train_neural_network(x):
