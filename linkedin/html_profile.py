@@ -103,13 +103,14 @@ class HTMLProfile:
     def location(self):
         """
         Where the user lives
+        Default: None
         :return: "San Fransisco Bay Area"
         """
         location_tag = self.soup.find(class_="locality")
-        location = None
-        if location_tag is not None:
-            location = location_tag.string
-        return location
+        if location_tag is not None and location_tag.string is not None:
+            return location_tag.string
+
+        return None
 
     @property
     @cache("__current_company")
@@ -128,14 +129,15 @@ class HTMLProfile:
         company_tag = self.soup.find(attrs={"data-section": "currentPositionsDetails"})
         if company_tag is not None:
             current_company = company_tag.find(class_="org").string
-            return current_company
+            if current_company is not None:
+                return current_company
 
         companies = self.all_companies
-        if len(companies) != 0:
+        if len(companies) != 0 and companies[0] is not None:
             return companies[0]
 
         companies = self.soup.find(class_="headline title")
-        if companies is not None:
+        if companies is not None and companies.string is not None:
             return companies.string
 
         return None
@@ -145,6 +147,7 @@ class HTMLProfile:
     def all_companies(self):
         """
         Returns all companies in experience section
+        Default: []
         :return: ["company", "company"]
         if no companies found return empty array
         """

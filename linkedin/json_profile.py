@@ -13,7 +13,6 @@ class JSONProfile:
         """
         :param profile_dict: An already parsed JSON profile, in the form of a python dictionary
         """
-
         self.profile = profile_dict
 
     def pre_cache_all(self):
@@ -77,14 +76,14 @@ class JSONProfile:
     @cache("__location")
     def location(self):
         """
+        Default: None
         :return: A string of where the person lives "San Fransisco Bay Area"
         """
 
-        location = ""
-        if "location" in self.profile:
-            location = self.profile["location"]
+        if "location" in self.profile and self.profile["location"] is not None:
+            return self.profile["location"]
 
-        return location
+        return None
 
     @property
     @cache("__current_company")
@@ -98,16 +97,18 @@ class JSONProfile:
             - If no company is EXPLICITLY stated, look for the latest held position
         :return: "current company"
         """
-        company = None
-        if "company-name" in self.profile:
+
+        if "company-name" in self.profile and self.profile["company-name"] is not None:
             company = self.profile["company-name"]
+            return company
 
-        if company is None and "positions" in self.profile:
+        if "positions" in self.profile:
             positions = self.profile["positions"]
-            if "company-name" in positions[0]:
+            if "company-name" in positions[0] and positions[0]["company-name"] is not None:
                 company = positions[0]["company-name"]
+                return company
 
-        return company
+        return None
 
     @property
     @cache("__all_companies")

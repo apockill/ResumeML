@@ -260,11 +260,13 @@ if __name__ == "__main__":
             website_list.append(line)
 
     # Open existing profiles
-    profile_manager = ProfileManager("../ScrapedProfiles")
+    print("Loading profiles...")
+    profile_manager = ProfileManager(html_dir="../Dataset/HTML_Profiles/")
 
     config = CrawlerConfig()
 
     # Run the crawler
+    print("Starting Crawler...")
     crawler = Crawler(profile_manager=profile_manager,
                       driver_path="../Resources/chromedriver.exe",
                       config=config)

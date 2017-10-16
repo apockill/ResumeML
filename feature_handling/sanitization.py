@@ -7,7 +7,7 @@ lemmetizer = WordNetLemmatizer()
 stemmer = PorterStemmer()
 
 
-def clean_skill(skill):
+def clean_feature(skill):
     """ Given a skill, it will do the following operations on the string
     lowercase
     remove punctuation
@@ -16,16 +16,21 @@ def clean_skill(skill):
     sort each word alphabetically
     return a string
     """
+
     lower = skill.lower()
     word_list = lower.split()
 
+    # Remove punctuation, lemmetize, and stem the words
     for i, word in enumerate(word_list):
-        word_list[i] = re.sub("[^a-zA-Z]+", "", word)
+        sanitized_word = re.sub("[^a-zA-Z]+", "", word)
+        sanitized_word = lemmetizer.lemmatize(sanitized_word, 'v')
+        sanitized_word = str(stemmer.stem(sanitized_word))
+        word_list[i] = sanitized_word
 
-    word_list = [lemmetizer.lemmatize(word, 'v') for word in word_list]
-    word_list = [str(stemmer.stem(word)) for word in word_list]
+    # word_list = [lemmetizer.lemmatize(word, 'v') for word in word_list]
+    # word_list = [str(stemmer.stem(word)) for word in word_list]
 
-    # Alphabetize the order of the words in skills
+    # Alphabetize the order of the words in the string
     word_list.sort()
 
     skill = " ".join(word_list)

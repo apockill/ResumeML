@@ -8,7 +8,6 @@ from time import time
 from linkedin.profile_manager import ProfileManager
 
 
-
 # Inputs
 html_dir = os.path.join(os.getcwd(), "Dataset", "HTML_Profiles")
 json_dir = os.path.join(os.getcwd(), "Dataset", "JSON_Profiles")

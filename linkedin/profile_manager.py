@@ -52,12 +52,22 @@ class ProfileManager:
 
     @property
     def skills(self):
-        """ Returns all skills from all users, with duplicates , in order of how common the skill was """
+        """ Returns all skills from all users, with duplicates, without order """
         skills = []
         for profile in self.profiles:
             skills += profile.skills
 
         return skills
+
+    @property
+    def current_companies(self):
+        """ Returns all current companies from all users, with duplicates, without order"""
+        current_companies = []
+        for profile in self.profiles:
+            if profile.current_company is not None:
+                current_companies.append(profile.current_company)
+
+        return current_companies
 
     def save_state(self, save_to):
         """
@@ -112,8 +122,8 @@ class ProfileManager:
                 parsed_profiles = [JSONProfile(parsed) for parsed in profile_jsons]
                 self.profiles += parsed_profiles
 
-        print("Pre-caching Profiles")
         if pre_cache_profiles:
+            print("Pre-caching Profiles")
             for profile in self.profiles:
                 profile.pre_cache_all()
         return
