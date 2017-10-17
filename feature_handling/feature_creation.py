@@ -1,4 +1,5 @@
 from collections import Counter
+from random import shuffle
 import pickle
 
 from feature_handling.sanitization import clean_feature
@@ -88,7 +89,7 @@ def get_features(profile, feature_list):
 
     if "industry" in feature_list:
         if profile.industry is not None:
-            features += profile.industry
+            features.append(profile.industry)
 
     # Throw errors just in case profile code is faulty
     if not all(isinstance(f, str) for f in features):
@@ -101,7 +102,12 @@ def get_features(profile, feature_list):
     return features
 
 
-def create_features(reader, input_features, output_feature, input_lexicon=None, output_lexicon=None, save_to=None):
+def create_features(reader, input_features, output_feature,
+                    min_input_samples=None,
+                    min_output_samples=None,
+                    input_lexicon=None,
+                    output_lexicon=None,
+                    save_to=None):
     """
     Returns the train_inputs train_outputs and test_inputs and test_outputs for skills
 
@@ -130,15 +136,17 @@ def create_features(reader, input_features, output_feature, input_lexicon=None, 
             input_strings += get_features(profile, input_features)
             output_strings += get_features(profile, [output_feature])
     if input_lexicon is None:
-        input_lexicon = create_lexicon(input_strings, 10)
+        input_lexicon = create_lexicon(input_strings, min_input_samples)
     if output_lexicon is None:
-        output_lexicon = create_lexicon(output_strings, 10)
+        output_lexicon = create_lexicon(output_strings, min_output_samples)
 
 
     # Generate the input and output corresponding arrays
     all_hot_inputs = []
     all_hot_outputs = []
-    for i, profile in enumerate(reader):
+    shuffled_profiles = [profile for profile in reader]
+    shuffle(shuffled_profiles)
+    for i, profile in enumerate(shuffled_profiles):
         inputs = get_features(profile, input_features)
         outputs = get_features(profile, [output_feature])
         if len(inputs) == 0:
@@ -150,9 +158,9 @@ def create_features(reader, input_features, output_feature, input_lexicon=None, 
         hot_input = hot_feature(input_lexicon, inputs)
         hot_output = hot_feature(output_lexicon, outputs)
 
-        # if all([x == 0 for x in hot_output]):
-        #     # print("ALL ARE 0 FOR OUTPUT")
-        #     continue
+        if all([x == 0 for x in hot_output]):
+            # print("ALL ARE 0 FOR OUTPUT")
+            continue
         if all([x == 0 for x in hot_input]):
             # print("ALL ARE 0 FOR INPUT")
             continue

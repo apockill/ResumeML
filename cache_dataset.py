@@ -31,6 +31,7 @@ for profile in reader:
     profile.all_companies
     profile.location
     profile.connection_count
+    profile.industry
 print("Processed all profiles in", time() - start, "seconds")
 
 # Saving State

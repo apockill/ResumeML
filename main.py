@@ -11,20 +11,15 @@ if __name__ == "__main__":
     print("Loading all profiles...")
     start = time()
     reader = ProfileManager(load_pickle="./cached_dataset.pickle", pre_cache_profiles=False)
+    print("Loaded and processed in ", time() - start)
 
-    #
-    # count = 0
-    # for profile in reader:
-    #     if len(profile.skills) > 0 and profile.current_company is not None:
-    #         if profile.current_company.lower() == "google":
-    #             count += 1
-    #             print(count)
 
     data = create_features(reader,
                            ["skills"],
-                           "current_company",
-                           output_lexicon=None,
-                           save_to="skills_to_comp.pickle")
+                           "industry",
+                           min_input_samples=100,
+                           min_output_samples=2500,
+                           save_to="skills_to_industry.pickle")
 
     print("in: ", len(data["inputs"]), "out: ", len(data["outputs"]), "in lex", len(data["input_lexicon"]), "out lex", len(data["output_lexicon"]))
-    #
+
