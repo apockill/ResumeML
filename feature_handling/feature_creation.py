@@ -87,7 +87,8 @@ def get_features(profile, feature_list):
         features += profile.all_companies
 
     if "industry" in feature_list:
-        features += profile.industry
+        if profile.industry is not None:
+            features += profile.industry
 
     # Throw errors just in case profile code is faulty
     if not all(isinstance(f, str) for f in features):

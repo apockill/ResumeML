@@ -154,7 +154,7 @@ class JSONProfile:
         :return: "industry"
         """
         industry_name = None
-        if "industry" is self.profile:
+        if "industry" in self.profile:
             industry_name = self.profile["industry"]
 
         return industry_name
