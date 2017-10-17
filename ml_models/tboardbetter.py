@@ -53,7 +53,8 @@ def train_neural_network(inputs, outputs):
     y = tf.placeholder(tf.float32, shape=[None, output_shape[1]], name="labels")
     prediction = neural_network(x)
 
-    save_dir = join(LOGDIR, make_hparam_string(node_h1, node_h2, node_h3, learning_rate, minibatch_size, num_epochs))
+    save_dir = join(LOGDIR, make_hparam_string(len(data["input_lexicon"]), len(data["output_lexicon"]),
+                                               node_h1, node_h2, node_h3, learning_rate, minibatch_size, num_epochs))
 
     with tf.name_scope(name="Cost"):
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=y))
@@ -112,10 +113,10 @@ def train_neural_network(inputs, outputs):
         writer.close()
 
 
-def make_hparam_string(nodes_1, nodes_2, nodes_3, learning_rate, mini_batch_size, number_epochs):
+def make_hparam_string(num_features, num_labels, nodes_1, nodes_2, nodes_3, learning_rate, mini_batch_size, number_epochs):
     return time.strftime("%Y-%m-%d-%H-%M ") + \
-           "LAYERS_%d_%d_%d_LR%f_BS%d_NE%d" % \
-           (nodes_1, nodes_2, nodes_3, learning_rate, mini_batch_size, number_epochs)
+           "FEATURES%d_LABELS%d_LAYERS_%d_%d_%d_LR%f_BS%d_NE%d" % \
+           (num_features, num_labels, nodes_2, nodes_3, learning_rate, mini_batch_size, number_epochs)
 
 
 # Run it!
