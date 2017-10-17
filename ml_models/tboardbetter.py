@@ -8,12 +8,11 @@ import pickle
 all_train_summaries = []
 
 
-
-def full_con_layer(input_data, size_in, size_out, name="fc"):
+def full_con_layer(input_data, size_in, size_out, name):
     with tf.name_scope(name):
         w = tf.Variable(tf.random_normal([size_in, size_out]), name="W")
         b = tf.Variable(tf.random_normal([size_out]), name="b")
-        activation = tf.add(tf.matmul(input_data, w), b)
+        activation = tf.add(tf.matmul(input_data, w), b, name="activation")
 
         # Make summaries for this layer
         global all_train_summaries
@@ -22,6 +21,7 @@ def full_con_layer(input_data, size_in, size_out, name="fc"):
         train_activations_summary = tf.summary.histogram("activations", activation)
         layer_summaries = [train_weights_summary, train_biases_summary, train_activations_summary]
         all_train_summaries += layer_summaries
+
         return activation
 
 
@@ -35,12 +35,11 @@ def neural_network(x):
     hidden_layer_2 = full_con_layer(tf.nn.relu(hidden_layer_1), node_h1, node_h2, name="hidden_layer_2")
     hidden_layer_3 = full_con_layer(tf.nn.relu(hidden_layer_2), node_h2, node_h3, name="hidden_layer_3")
     output_layer = full_con_layer(tf.nn.relu(hidden_layer_3), node_h3, output_shape[1], name="output_layer")
-
     return output_layer
 
 
 # Train the neural network using all the settings
-def train_neural_network(inputs, outputs):
+def train_neural_network():
     """
     :param x: tensor for input
 
@@ -52,7 +51,7 @@ def train_neural_network(inputs, outputs):
     x = tf.placeholder(tf.float32, shape=[None, input_shape[1]], name="x")
     y = tf.placeholder(tf.float32, shape=[None, output_shape[1]], name="labels")
     prediction = neural_network(x)
-
+    print(prediction)
     save_dir = join(LOGDIR, make_hparam_string(node_h1, node_h2, node_h3, learning_rate, minibatch_size, num_epochs))
 
     with tf.name_scope(name="Cost"):
@@ -123,8 +122,10 @@ if __name__ == "__main__":
     # Import Data
     print("Loading data...")
     data = pickle.load(open("../skills_to_industry.pickle", "rb"))
-    print("in: ", len(data["inputs"]), "out: ", len(data["outputs"]), "in lex", len(data["input_lexicon"]), "out lex",
-          len(data["output_lexicon"]))
+    print("in: ", len(data["inputs"]),
+          "out: ", len(data["outputs"]),
+          "in lex", len(data["input_lexicon"]),
+          "out lex", len(data["output_lexicon"]))
 
     LOGDIR = "..\\test_dir\\"
 
@@ -145,8 +146,8 @@ if __name__ == "__main__":
     # Learning
     minibatch_size = 300
     learning_rate = 0.0001
-    num_epochs = 100
+    num_epochs = 1000
 
-    train_neural_network(data["inputs"], data["outputs"])
+    train_neural_network()
 
 
