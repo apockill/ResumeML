@@ -111,10 +111,10 @@ def train_neural_network():
         writer.close()
 
 
-def make_hparam_string(nodes_1, nodes_2, nodes_3, learning_rate, mini_batch_size, number_epochs):
+def make_hparam_string(num_features, num_labels, nodes_1, nodes_2, nodes_3, learning_rate, mini_batch_size, number_epochs):
     return time.strftime("%Y-%m-%d-%H-%M ") + \
-           "LAYERS_%d_%d_%d_LR%f_BS%d_NE%d" % \
-           (nodes_1, nodes_2, nodes_3, learning_rate, mini_batch_size, number_epochs)
+           "FEATURES%d_LABELS%d_LAYERS_%d_%d_%d_LR%f_BS%d_NE%d" % \
+           (num_features, num_labels, nodes_2, nodes_3, learning_rate, mini_batch_size, number_epochs)
 
 
 # Run it!
