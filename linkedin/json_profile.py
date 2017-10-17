@@ -27,6 +27,7 @@ class JSONProfile:
         self.all_companies
         self.location
         self.connection_count
+        self.industry
 
 
     # Parsing Functions (Tested)
@@ -143,3 +144,17 @@ class JSONProfile:
             connections = self.profile["num-connections"]
 
         return connections
+
+    @property
+    @cache("__industry")
+    def industry(self):
+        """
+        Get his persons industry/field of work
+        returns none if no industry
+        :return: "industry"
+        """
+        industry_name = None
+        if "industry" is self.profile:
+            industry_name = self.profile["industry"]
+
+        return industry_name

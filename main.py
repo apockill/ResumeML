@@ -23,8 +23,8 @@ if __name__ == "__main__":
     data = create_features(reader,
                            ["skills"],
                            "current_company",
-                           output_lexicon=create_lexicon(["google"], 0),
-                           save_to="skills_to_google.pickle")
+                           output_lexicon=None,
+                           save_to="skills_to_comp.pickle")
 
     print("in: ", len(data["inputs"]), "out: ", len(data["outputs"]), "in lex", len(data["input_lexicon"]), "out lex", len(data["output_lexicon"]))
     #

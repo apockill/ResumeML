@@ -65,7 +65,7 @@ def get_features(profile, feature_list):
         "all_companies"
     :return: A list of strings of all the features, duplicates included, order doesn't necessarily matter.
     """
-    supported_features =  ["skills", "current_company", "location", "all_companies"]
+    supported_features = ["skills", "current_company", "location", "all_companies", "industry"]
     # Verify that all the features being requested are implemented
     assert all([feature in supported_features for feature in feature_list]),\
             "One of the features you requested does not exist! Supported: " + str(supported_features) + \
@@ -85,6 +85,9 @@ def get_features(profile, feature_list):
 
     if "all_companies" in feature_list:
         features += profile.all_companies
+
+    if "industry" in feature_list:
+        features += profile.industry
 
     # Throw errors just in case profile code is faulty
     if not all(isinstance(f, str) for f in features):
