@@ -28,7 +28,7 @@ class HTMLProfile:
         self.all_companies
         self.location
         self.connection_count
-
+        self.industry
 
     # Parsing Functions (Tested)
     @property
@@ -188,144 +188,16 @@ class HTMLProfile:
         return cons
 
 
-    # # Parsing Functions (Untested)
-    # def get_bio(self):
-    #     """
-    #     Gets this persons bio w/o new lines
-    #     :return: string bio
-    #     """
-    #
-    #     bio_tag = self.soup.find(class_="pv-top-card-section__summary Sans-15px-black-70% mt5 pt5 ember-view")
-    #     bio = ""
-    #     if bio_tag is None:
-    #         return ""
-    #     for string in bio_tag.strings:  # P seems to be content in paragraphs
-    #         if string != "See more":
-    #             bio = bio + string
-    #         else:
-    #             break
-    #
-    #     return bio.replace("\n", "")
-    #
-    # def get_media_number(self):
-    #     """
-    #     Probably considered an ugly way to do this but it works
-    #     :return: number of media files (int)
-    #     """
-    #     media_title = self.soup.find(class_="pv-treasury-carousel__subheadline")
-    #     if media_title is None:
-    #         return ""
-    #     media_title = media_title.string
-    #     media_num = 0
-    #
-    #     for character in media_title:
-    #         if character.isdigit():
-    #             media_num = media_num * 10 + int(character)
-    #
-    #     return media_num
-    #
-    # def get_languages(self):
-    #     """
-    #     The following few methods could be condensed into one method (including this one) with another param if desired.
-    #     Gets this persons languages
-    #     :return: ['language', 'language']
-    #     """
-    #
-    #     accomp_tag = self.soup.find(class_="pv-profile-section artdeco-container-card pv-accomplishments-section ember-view")
-    #     if accomp_tag is None:
-    #         accomp_tag = self.soup.find(class_="pv-profile-section pv-accomplishments-section artdeco-container-card ember-view")
-    #
-    #     languages_array = []
-    #     for section in accomp_tag.find_all(class_="pv-accomplishments-block__title"):
-    #         if section.string == "Language" or section.string == "Languages":
-    #             for language in section.parent.find_all(class_="pv-accomplishments-block__summary-list-item"):
-    #                 languages_array.append(language.string)
-    #             break
-    #     return languages_array
-    #
-    # def get_certification(self):
-    #     """"
-    #     Get this persons certifications
-    #     :return: ['Certification', 'cert', ...]
-    #     """
-    #     return 0
-    #     accomp_tag = self.soup.find(class_="pv-profile-section artdeco-container-card pv-accomplishments-section ember-view")
-    #     if accomp_tag is None:
-    #         accomp_tag = self.soup.find(class_="pv-profile-section pv-accomplishments-section artdeco-container-card ember-view")
-    #
-    #     cert_array = []
-    #     for section in accomp_tag.find_all(class_="pv-accomplishments-block__title"):
-    #         if section.string == "Certification" or section.string == "Certifications":
-    #             for certification in section.parent.find_all(class_="pv-accomplishments-block__summary-list-item"):
-    #                 cert_array.append(certification.string)
-    #             break
-    #     return cert_array
-    #
-    # def get_projects(self):
-    #     """
-    #     Get the projects this person has done.
-    #     :return: ['project name', 'project name']
-    #     """
-    #     accomp_tag = self.soup.find(class_="pv-profile-section artdeco-container-card pv-accomplishments-section ember-view")
-    #     if accomp_tag is None:
-    #         accomp_tag = self.soup.find(class_="pv-profile-section pv-accomplishments-section artdeco-container-card ember-view")
-    #
-    #     proj_array = []
-    #     for section in accomp_tag.find_all(class_="pv-accomplishments-block__title"):
-    #         if section.string == "Project" or section.string == "Projects":
-    #             for project in section.parent.find_all(class_="pv-accomplishments-block__summary-list-item"):
-    #                 proj_array.append(project.string)
-    #             break
-    #     return proj_array
-    #
-    # def get_awards(self):
-    #     """
-    #     Get the honors/awards this person has earned.
-    #     :return: ['h/a name', 'h/a name']
-    #     """
-    #     accomp_tag = self.soup.find(class_="pv-profile-section artdeco-container-card pv-accomplishments-section ember-view")
-    #     if accomp_tag is None:
-    #         accomp_tag = self.soup.find(class_="pv-profile-section pv-accomplishments-section artdeco-container-card ember-view")
-    #
-    #     awar_array = []
-    #     for section in accomp_tag.find_all(class_="pv-accomplishments-block__title"):
-    #         if section.string == "Honors & Awards" or section.string == "Award":
-    #             for award in section.parent.find_all(class_="pv-accomplishments-block__summary-list-item"):
-    #                 awar_array.append(award.string)
-    #             break
-    #     return awar_array
-    #
-    # def get_organizations(self):
-    #     """
-    #     Get the organizations this person is/was a part of.
-    #     :return: ['organization name', 'organization name']
-    #     """
-    #     accomp_tag = self.soup.find(class_="pv-profile-section artdeco-container-card pv-accomplishments-section ember-view")
-    #     if accomp_tag is None:
-    #         accomp_tag = self.soup.find(class_="pv-profile-section pv-accomplishments-section artdeco-container-card ember-view")
-    #
-    #     org_array = []
-    #     for section in accomp_tag.find_all(class_="pv-accomplishments-block__title"):
-    #         if section.string == "Organizations" or section.string == "Organization":
-    #             for organization in section.parent.find_all(class_="pv-accomplishments-block__summary-list-item"):
-    #                 org_array.append(organization.string)
-    #             break
-    #     return org_array
-    #
-    # def get_courses(self):
-    #     """
-    #     Get the courses this person has taken.
-    #     :return: ['course name', 'course name']
-    #     """
-    #     accomp_tag = self.soup.find(class_="pv-profile-section artdeco-container-card pv-accomplishments-section ember-view")
-    #     if accomp_tag is None:
-    #         accomp_tag = self.soup.find(class_="pv-profile-section pv-accomplishments-section artdeco-container-card ember-view")
-    #
-    #     cour_array = []
-    #     for section in accomp_tag.find_all(class_="pv-accomplishments-block__title"):
-    #         if section.string == "Courses" or section.string == "Course":
-    #             for course in section.parent.find_all(class_="pv-accomplishments-block__summary-list-item"):
-    #                 cour_array.append(course.string)
-    #             break
-    #     return cour_array
-    #
+    @property
+    @cache("__industry")
+    def industry(self):
+        """
+        Default: None
+        :return: The industry that the person works in
+        """
+        industry_tag = self.soup.find_all("dd", class_="descriptor")
+
+        if len(industry_tag) == 2 and industry_tag[1].string is not None:
+            return industry_tag[1].string
+
+        return None
