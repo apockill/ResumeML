@@ -13,44 +13,25 @@ test_inputs = data["inputs"][-num_tests:]
 test_outputs = data["outputs"][-num_tests:]
 
 
-# Hack to make it work better maybe? (because our output works best with two output neurons)
-# print(""""Fixing" Labels...""")
-# for i in range(np.shape(test_outputs)[0]):
-#     if test_outputs[i] == [0]:
-#         test_outputs_temp = np.append(test_outputs_temp, [[0, 1]], axis=0)
-#
-#     else:
-#         test_outputs_temp = np.append(test_outputs_temp, [[1, 0]], axis=0)
-#         print("Hey")
-#
-# for i in range(np.shape(train_outputs)[0]):
-#     if train_outputs[i] == [0]:
-#         train_outputs_temp = np.append(train_outputs_temp, [[0, 1]], axis=0)
-#
-#     else:
-#         train_outputs_temp = np.append(train_outputs_temp, [[1, 0]], axis=0)
-
-
 # Setup characteristics of network:
 # Shape
-node_h1 = 100
-node_h2 = 100
-node_h3 = 100
+node_h1 = 500
+node_h2 = 500
+node_h3 = 500
 input_size = np.shape(train_inputs)
 output_size = np.shape(train_outputs)
 
 # Learning
 batch_size = 300
-learning_rate = 0.01
-num_epochs = 1000
+learning_rate = 0.001
+num_epochs = 5000
 
 # Tensorflow placeholders for inputs and outputs
 x = tf.placeholder(tf.float32, shape=[None, input_size[1]], name="x")
 y = tf.placeholder(tf.float32, shape=[None, output_size[1]], name="y")
 
+
 # Setup structure of network using tf
-
-
 def neural_network_model(data):
     """
     Sets up structure and model of nn
