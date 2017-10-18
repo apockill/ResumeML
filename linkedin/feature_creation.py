@@ -1,4 +1,5 @@
 import pickle
+import os
 from collections import Counter
 from random import shuffle
 
@@ -107,12 +108,12 @@ def create_features(reader, input_features, output_feature,
                     min_output_samples=None,
                     input_lexicon=None,
                     output_lexicon=None,
-                    save_to=None):
+                    save_dir=None):
     """
     Returns the train_inputs train_outputs and test_inputs and test_outputs for skills
 
     :param reader: The profile reader
-    :save_to: Where to save the pickle of the created features
+    :save_to_file: If you want to save to a pickle
     :input_list: A list of any supported strings by get_features()
     :output: A string, supported by get_features()
     :return: A json of the following format:
@@ -170,12 +171,20 @@ def create_features(reader, input_features, output_feature,
 
     data = {"inputs": all_hot_inputs, "outputs": all_hot_outputs,
             "input_lexicon": input_lexicon, "output_lexicon": output_lexicon}
-    if save_to is not None:
-        pickle.dump(data, open(save_to, "wb"))
+    if save_dir is not None:
+        filename = make_pickle_name(input_features, output_feature, input_lexicon, output_lexicon)
+        save_file = os.path.join(save_dir, filename)
+        pickle.dump(data, open(save_file, "wb"))
 
     print("Skipped", len(reader) - len(all_hot_inputs), "profiles")
     return data
 
+
+def make_pickle_name(inputs, output, input_lexicon, output_lexicon):
+    input_str = '_'.join(inputs)
+    input_num = str(len(input_lexicon))
+    output_num = str(len(output_lexicon))
+    return "FROM_" + input_str + "_TO_" + output + "_INPUTS_" + input_num + "_OUTS_" + output_num + ".pickle"
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ if __name__ == "__main__":
                            "industry",
                            min_input_samples=100,
                            min_output_samples=2500,
-                           save_to="skills_to_industry.pickle")
+                           save_dir="./")
 
     print("in: ", len(data["inputs"]), "out: ", len(data["outputs"]), "in lex", len(data["input_lexicon"]), "out lex", len(data["output_lexicon"]))
 
