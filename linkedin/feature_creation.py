@@ -180,11 +180,12 @@ def create_features(reader, input_features, output_feature,
     return data
 
 
-def make_pickle_name(inputs, output, input_lexicon, output_lexicon):
+def make_pickle_name(inputs, output, num_samples, input_lexicon, output_lexicon):
     input_str = '_'.join(inputs)
     input_num = str(len(input_lexicon))
     output_num = str(len(output_lexicon))
-    return "FROM_" + input_str + "_TO_" + output + "_INPUTS_" + input_num + "_OUTS_" + output_num + ".pickle"
+    return "FROM_" + input_str + "_TO_" + output + "_SAMPLES_" + str(num_samples) + \
+           "_INPUTS_" + input_num + "_OUTS_" + output_num + ".pickle"
 
 
 if __name__ == "__main__":
