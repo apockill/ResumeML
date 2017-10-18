@@ -52,7 +52,8 @@ def train_neural_network():
     y = tf.placeholder(tf.float32, shape=[None, output_shape[1]], name="labels")
     prediction = neural_network(x)
     print(prediction)
-    save_dir = join(LOGDIR, make_hparam_string(node_h1, node_h2, node_h3, learning_rate, minibatch_size, num_epochs))
+    save_dir = join(LOGDIR, make_hparam_string(input_shape[1], output_shape[1],
+                    node_h1, node_h2, node_h3, learning_rate, minibatch_size, num_epochs))
 
     with tf.name_scope(name="Cost"):
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=y))
@@ -89,6 +90,8 @@ def train_neural_network():
         saver = tf.train.Saver()
 
         print("Begin Training...")
+        # Every time the network beats its record, save it to file
+        best_accuracy_so_far = 0
         for epoch in range(num_epochs):
             num_steps = int(input_shape[0] / minibatch_size)
 
@@ -98,19 +101,25 @@ def train_neural_network():
                 batch_x = np.array(train_inputs[start:end])
                 batch_y = np.array(train_outputs[start:end])
 
-                if step % 5 == 0:
+                if step % 100 == 0:
                     [_, s] = sess.run([train_accuracy, train_summaries], feed_dict={x: batch_x, y: batch_y})
                     writer.add_summary(s, num_steps * epoch + step)
 
                 sess.run([optimizer, cost], feed_dict={x: batch_x, y: batch_y})
-            out, summary = sess.run([test_accuracy, test_summaries], feed_dict={x: test_inputs, y:test_outputs})
-            writer.add_summary(summary, num_steps * epoch)
-            print(out)
+
+            if epoch % 5 == 0:
+                accuracy, summary = sess.run([test_accuracy, test_summaries], feed_dict={x: test_inputs, y:test_outputs})
+                writer.add_summary(summary, num_steps * epoch)
+
+                # Save model if it broke it's previous record
+                if accuracy > best_accuracy_so_far:
+                    best_accuracy_so_far = accuracy
+                    print("Saving new record: ", accuracy)
+                    saver.save(sess, join(save_dir, "saved"), global_step=0)
+                print(accuracy)
             print("Epoch", epoch + 1, "out of", num_epochs, "epochs")
 
         print("Finished Training...")
-
-        saver.save(sess, join(save_dir, "saved"), global_step=1000)
         writer.close()
 
 
@@ -124,7 +133,7 @@ def make_hparam_string(num_features, num_labels, nodes_1, nodes_2, nodes_3, lear
 if __name__ == "__main__":
     # Import Data
     print("Loading data...")
-    data = pickle.load(open("../skills_to_industry.pickle", "rb"))
+    data = pickle.load(open("../FROM_skills_TO_industry_SAMPLES_48078_MINPUTS_100_MOUTS_2500.pickle", "rb"))
     print("in: ", len(data["inputs"]),
           "out: ", len(data["outputs"]),
           "in lex", len(data["input_lexicon"]),
@@ -140,15 +149,15 @@ if __name__ == "__main__":
     test_outputs = data["outputs"][-num_tests:]
 
     # Setup characteristics of network:
-    node_h1 = 500
-    node_h2 = 500
-    node_h3 = 500
+    node_h1 = 700
+    node_h2 = 700
+    node_h3 = 700
     input_shape = np.shape(train_inputs)
     output_shape = np.shape(train_outputs)
 
     # Learning
-    minibatch_size = 300
-    learning_rate = 0.0001
+    minibatch_size = 1000
+    learning_rate = 0.001
     num_epochs = 1000
 
     train_neural_network()

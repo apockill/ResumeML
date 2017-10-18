@@ -172,7 +172,11 @@ def create_features(reader, input_features, output_feature,
     data = {"inputs": all_hot_inputs, "outputs": all_hot_outputs,
             "input_lexicon": input_lexicon, "output_lexicon": output_lexicon}
     if save_dir is not None:
-        filename = make_pickle_name(input_features, output_feature, input_lexicon, output_lexicon)
+        filename = make_pickle_name(input_features,
+                                    output_feature,
+                                    len(all_hot_inputs),
+                                    min_input_samples,
+                                    min_output_samples)
         save_file = os.path.join(save_dir, filename)
         pickle.dump(data, open(save_file, "wb"))
 
@@ -180,12 +184,10 @@ def create_features(reader, input_features, output_feature,
     return data
 
 
-def make_pickle_name(inputs, output, num_samples, input_lexicon, output_lexicon):
+def make_pickle_name(inputs, output, num_samples, min_inputs, min_outs):
     input_str = '_'.join(inputs)
-    input_num = str(len(input_lexicon))
-    output_num = str(len(output_lexicon))
     return "FROM_" + input_str + "_TO_" + output + "_SAMPLES_" + str(num_samples) + \
-           "_INPUTS_" + input_num + "_OUTS_" + output_num + ".pickle"
+           "_MINPUTS_" + str(min_inputs) + "_MOUTS_" + str(min_outs) + ".pickle"
 
 
 if __name__ == "__main__":
