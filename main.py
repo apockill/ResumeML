@@ -1,10 +1,7 @@
-import os
 from time import time
-from collections import Counter
 
+from linkedin.feature_creation import create_features
 from linkedin.profile_manager import ProfileManager
-from feature_handling.feature_creation import create_features, create_lexicon
-
 
 if __name__ == "__main__":
     # Inputs

@@ -1,8 +1,8 @@
+import pickle
 from collections import Counter
 from random import shuffle
-import pickle
 
-from feature_handling.sanitization import clean_feature
+from linkedin.sanitization import clean_feature
 
 
 def create_lexicon(all_feature_strings, min_uses):

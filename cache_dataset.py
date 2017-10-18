@@ -18,8 +18,8 @@ start = time()
 reader = ProfileManager(html_dir=html_dir, json_dir=json_dir, pre_cache_profiles=True)
 print("Loaded", len(reader), "profiles in", time() - start, "seconds")
 
-# Open all files in the ScrapedProfiles directory, parse, and print them
 
+# Open all files in the ScrapedProfiles directory, parse, and print them
 start = time()
 print("Processing all profiles...")
 for profile in reader:
