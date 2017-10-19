@@ -10,7 +10,7 @@ class Label:
     def __init__(self, output_layer, transfer_layer, index, label_text):
         self.output_layer = output_layer
         self.transfer_layer = transfer_layer
-        self.index = index
+        self.id = index
         self.name = label_text
 
     def __repr__(self):
@@ -20,9 +20,8 @@ class Label:
 class Brain:
     def __init__(self, model_dir, output_lex):
         self.session = tf.Session()
-
         # Load the graph
-        meta_file = os.path.join(model_dir, "saved-1000.meta")
+        meta_file = os.path.join(model_dir, "saved-0.meta")
         saver = tf.train.import_meta_graph(meta_file)
         saver.restore(self.session, tf.train.latest_checkpoint(model_dir))
         graph = tf.get_default_graph()
@@ -49,12 +48,12 @@ class Brain:
         """
 
         input = np.array([input_arr])
-        out = self.session.run([self.transfer_tensor, self.output_tensor], {self.input_tensor: input})[0]
-        print(out)
-        index = int(round(np.argmax(out), 0))
+        transfer_layer, output_layer = self.session.run([self.transfer_tensor, self.output_tensor], {self.input_tensor: input})
+        output_layer = output_layer[0]
+        index = int(round(np.argmax(output_layer), 0))
         label_text = self.output_lex[index]
 
-        return Label(out, index, label_text)
+        return Label(output_layer, transfer_layer, index, label_text)
 
     def predict_transfer_values(self, input_arr):
         pass
@@ -66,5 +65,6 @@ class Brain:
 
     def close(self):
         self.session.close()
+        tf.reset_default_graph()
 
 

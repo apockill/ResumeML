@@ -10,7 +10,7 @@ import numpy as np
 test_dir = "test_dir\\"
 test_dirs = [os.path.join(test_dir, sub_dir) for sub_dir in os.listdir(test_dir)]
 
-data = pickle.load(open("skills_to_industry.pickle", "rb"))
+data = pickle.load(open("./FROM_skills_TO_industry_SAMPLES_48078_MINPUTS_100_MOUTS_2500.pickle", "rb"))
 
 test_inputs = data["inputs"][-10000:]
 test_outputs = data["outputs"][-10000:]
@@ -23,7 +23,7 @@ test_outputs = [np.argmax(out) for out in test_outputs]
 for test_name in os.listdir(test_dir):
     test_path = os.path.join(test_dir, test_name)
 
-    with Brain(test_dirs[0], data["output_lexicon"]) as brain:
+    with Brain(test_path, data["output_lexicon"]) as brain:
         # Generate the confusion matrix
         cnf_matrix = generate_confusion_matrix(test_inputs, test_outputs, brain)
         plot_title = test_name

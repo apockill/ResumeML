@@ -31,10 +31,12 @@ def neural_network(x):
     :param data: followed tutorials.... Unused???
     :return: output activation
     """
+
     hidden_layer_1 = full_con_layer(x, input_shape[1], node_h1, name="hidden_layer_1")
     hidden_layer_2 = full_con_layer(tf.nn.relu(hidden_layer_1), node_h1, node_h2, name="hidden_layer_2")
     hidden_layer_3 = full_con_layer(tf.nn.relu(hidden_layer_2), node_h2, node_h3, name="hidden_layer_3")
-    output_layer = full_con_layer(tf.nn.relu(hidden_layer_3), node_h3, output_shape[1], name="output_layer")
+    hidden_layer_4 = full_con_layer(tf.nn.relu(hidden_layer_3), node_h3, node_h4, name="hidden_layer_3")
+    output_layer = full_con_layer(tf.nn.relu(hidden_layer_4), node_h4, output_shape[1], name="output_layer")
     return output_layer
 
 
@@ -53,7 +55,7 @@ def train_neural_network():
     prediction = neural_network(x)
     print(prediction)
     save_dir = join(LOGDIR, make_hparam_string(input_shape[1], output_shape[1],
-                    node_h1, node_h2, node_h3, learning_rate, minibatch_size, num_epochs))
+                    node_h1, node_h2, node_h3, node_h4, learning_rate, minibatch_size, num_epochs))
 
     with tf.name_scope(name="Cost"):
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=y))
@@ -123,10 +125,10 @@ def train_neural_network():
         writer.close()
 
 
-def make_hparam_string(num_features, num_labels, nodes_1, nodes_2, nodes_3, learning_rate, mini_batch_size, number_epochs):
+def make_hparam_string(num_features, num_labels, nodes_1, nodes_2, nodes_3, nodes_4, learning_rate, mini_batch_size, number_epochs):
     return time.strftime("%Y-%m-%d-%H-%M ") + \
-           "FEATURES%d_LABELS%d_LAYERS_%d_%d_%d_LR%f_BS%d_NE%d" % \
-           (num_features, num_labels, nodes_1, nodes_2, nodes_3, learning_rate, mini_batch_size, number_epochs)
+           "FEATURES%d_LABELS%d_LAYERS_%d_%d_%d_%d_LR%f_BS%d_NE%d" % \
+           (num_features, num_labels, nodes_1, nodes_2, nodes_3, nodes_4, learning_rate, mini_batch_size, number_epochs)
 
 
 # Run it!
@@ -149,16 +151,17 @@ if __name__ == "__main__":
     test_outputs = data["outputs"][-num_tests:]
 
     # Setup characteristics of network:
-    node_h1 = 700
-    node_h2 = 700
-    node_h3 = 700
+    node_h1 = 3500
+    node_h2 = 3500
+    node_h3 = 3500
+    node_h4 = 3500
     input_shape = np.shape(train_inputs)
     output_shape = np.shape(train_outputs)
 
     # Learning
     minibatch_size = 1000
     learning_rate = 0.001
-    num_epochs = 1000
+    num_epochs = 10000
 
     train_neural_network()
 

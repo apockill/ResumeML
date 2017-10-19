@@ -36,6 +36,9 @@ def plot_confusion_matrix(cm, classes, normalize=False,
         print('Confusion matrix, without normalization')
 
     print(cm)
+    plt.clf()
+    plt.cla()
+    plt.close()
 
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title)
@@ -69,7 +72,7 @@ def generate_confusion_matrix(inputs, expected_outputs, brain):
     pred_outputs = []
     for input in inputs:
         label = brain.predict(input)
-        pred_outputs.append(label.name)
+        pred_outputs.append(label.id)
 
     cnf_matrix = confusion_matrix(expected_outputs, pred_outputs)
     return cnf_matrix
