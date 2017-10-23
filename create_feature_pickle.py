@@ -14,8 +14,9 @@ if __name__ == "__main__":
     data = create_features(reader,
                            ["skills"],
                            "industry",
-                           min_input_samples=100,
-                           min_output_samples=2500,
+                           min_inputs_per_profile=3,
+                           min_input_samples=125,
+                           min_output_samples=3500,
                            save_dir="./")
 
     print("in: ", len(data["inputs"]), "out: ", len(data["outputs"]), "in lex", len(data["input_lexicon"]), "out lex", len(data["output_lexicon"]))

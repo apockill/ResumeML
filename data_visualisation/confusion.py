@@ -31,11 +31,8 @@ def plot_confusion_matrix(cm, classes, normalize=False,
     """
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-        print("Normalized confusion matrix")
-    else:
-        print('Confusion matrix, without normalization')
 
-    print(cm)
+    # Clear all previous plot information
     plt.clf()
     plt.cla()
     plt.close()
@@ -67,12 +64,11 @@ def plot_confusion_matrix(cm, classes, normalize=False,
         plt.show()
 
 
-def generate_confusion_matrix(inputs, expected_outputs, brain):
+def generate_confusion_matrix(predictions, expected_outputs):
 
     pred_outputs = []
-    for input in inputs:
-        label = brain.predict(input)
-        pred_outputs.append(label.id)
+    for pred in predictions:
+        pred_outputs.append(pred.id)
 
     cnf_matrix = confusion_matrix(expected_outputs, pred_outputs)
     return cnf_matrix

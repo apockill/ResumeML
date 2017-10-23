@@ -7,8 +7,9 @@ session = None
 
 class Label:
     # Represents a prediction from the network
-    def __init__(self, output_layer, transfer_layer, index, label_text):
-        self.output_layer = output_layer
+    def __init__(self, input, output_layer, transfer_layer, index, label_text):
+        self.input = input
+        self.output = output_layer
         self.transfer_layer = transfer_layer
         self.id = index
         self.name = label_text
@@ -50,10 +51,11 @@ class Brain:
         input = np.array([input_arr])
         transfer_layer, output_layer = self.session.run([self.transfer_tensor, self.output_tensor], {self.input_tensor: input})
         output_layer = output_layer[0]
+        transfer_layer = transfer_layer[0]
         index = int(round(np.argmax(output_layer), 0))
         label_text = self.output_lex[index]
 
-        return Label(output_layer, transfer_layer, index, label_text)
+        return Label(input, output_layer, transfer_layer, index, label_text)
 
     def predict_transfer_values(self, input_arr):
         pass
