@@ -14,7 +14,7 @@ if __name__ == "__main__":
     data = create_features(reader,
                            ["skills"],
                            "industry",
-                           min_inputs_per_profile=3,
+                           min_inputs_per_profile=6,
                            min_input_samples=125,
                            min_output_samples=3500,
                            save_dir="./")

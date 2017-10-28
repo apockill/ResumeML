@@ -190,7 +190,7 @@ def make_pickle_name(inputs, output, min_inputs_per, min_input_samples, min_outp
     input_str = '_'.join(inputs)
     return "FROM_" + input_str + "_TO_" + output + \
            "_MININPUTSPER_" + str(min_inputs_per) + \
-           "_INPUTSAMPLES" + str(min_input_samples) + \
+           "_INPUTSAMPLES_" + str(min_input_samples) + \
            "_OUTPUTSAMPLES_" + str(min_output_samples) + ".pickle"
 
 

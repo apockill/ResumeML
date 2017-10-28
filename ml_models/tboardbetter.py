@@ -134,10 +134,10 @@ def make_hparam_string(num_features, num_labels, nodes_1, nodes_2, nodes_3, lear
 # Run it!
 if __name__ == "__main__":
     # Import Data
-    LOGDIR = "..\\test_dir\\dataset_3\\"
+    LOGDIR = "..\\test_dir\\dataset_4\\"
 
     print("Loading data...")
-    data = pickle.load(open(LOGDIR + "\\FROM_skills_TO_industry_MININPUTSPER_3_INPUTSAMPLES125_OUTPUTSAMPLES_3500.pickle", "rb"))
+    data = pickle.load(open(LOGDIR + "\\FROM_skills_TO_industry_MININPUTSPER_6_INPUTSAMPLES_125_OUTPUTSAMPLES_3500.pickle", "rb"))
     print("in: ", len(data["inputs"]),
           "out: ", len(data["outputs"]),
           "in lex", len(data["input_lexicon"]),
@@ -152,9 +152,9 @@ if __name__ == "__main__":
     test_outputs = data["outputs"][-num_tests:]
 
     # Setup characteristics of network:
-    node_h1 = 4500
-    node_h2 = 4500
-    node_h3 = 4500
+    node_h1 = 4000
+    node_h2 = 4000
+    node_h3 = 4000
     # node_h4 = 3500
     input_shape = np.shape(train_inputs)
     output_shape = np.shape(train_outputs)

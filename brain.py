@@ -5,6 +5,7 @@ import numpy as np
 
 session = None
 
+
 class Label:
     # Represents a prediction from the network
     def __init__(self, input, output_layer, transfer_layer, index, label_text):
@@ -27,10 +28,11 @@ class Brain:
         saver.restore(self.session, tf.train.latest_checkpoint(model_dir))
         graph = tf.get_default_graph()
 
-        # Get the function for the network
+        # Get the functions for the network
         self.input_tensor = graph.get_tensor_by_name("x:0")
-        self.transfer_tensor = graph.get_tensor_by_name("hidden_layer_3/activation:0")
+        transfer_layer = graph.get_tensor_by_name("hidden_layer_3/activation:0")
         activation = graph.get_tensor_by_name("output_layer/activation:0")
+        self.transfer_tensor = tf.nn.relu(transfer_layer)
         self.output_tensor = tf.nn.softmax(logits=activation)
 
         # Variables
