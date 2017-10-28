@@ -8,7 +8,7 @@ from brain import Brain
 import numpy as np
 
 # Choose the folder to analyze
-tests_dir = "test_dir\\dataset_3"
+tests_dir = "test_dir\\dataset_1"
 
 
 dataset_to_load = [pickle_file for pickle_file in os.listdir(tests_dir) if ".pickle" in pickle_file][0]
