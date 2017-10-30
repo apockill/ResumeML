@@ -35,3 +35,15 @@ def clean_feature(skill):
 
     skill = " ".join(word_list)
     return skill
+
+
+if __name__ == "__main__":
+    words = ["management", "manager", "managing", "run", "running", "ran"]
+
+    print("Lemmatizing")
+    for word in words:
+        print(word, lemmetizer.lemmatize(word, "v"))
+
+    print("\nStemming")
+    for word in words:
+        print(word, stemmer.stem(word))

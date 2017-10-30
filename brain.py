@@ -73,9 +73,6 @@ class Brain:
 
         return Label(input, output_layer, transfer_layer, output_activation, index, label_text)
 
-    def predict_transfer_values(self, input_arr):
-        pass
-
     def get_label(self, onehot_output, output_lex):
         index = int(round(np.argmax(onehot_output), 0))
         label_text = self.output_lex[index]
