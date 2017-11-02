@@ -2,6 +2,8 @@ import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 
+from data_visualisation.matplotlib_utils import reset_plot
+
 from sklearn import svm, datasets
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
@@ -32,10 +34,7 @@ def plot_confusion_matrix(cm, classes, normalize=False,
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
-    # Clear all previous plot information
-    plt.clf()
-    plt.cla()
-    plt.close()
+    reset_plot()
 
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title)
@@ -72,18 +71,3 @@ def generate_confusion_matrix(predictions, expected_outputs):
 
     cnf_matrix = confusion_matrix(expected_outputs, pred_outputs)
     return cnf_matrix
-
-
-# # Compute confusion matrix
-# cnf_matrix = confusion_matrix(y_test, y_pred)
-# np.set_printoptions(precision=2)
-#
-# # Plot non-normalized confusion matrix
-# plt.figure()
-# plot_confusion_matrix(cnf_matrix, classes=class_names,
-#                       title='Confusion matrix, without normalization')
-#
-# # Plot normalized confusion matrix
-# plt.figure()
-# plot_confusion_matrix(cnf_matrix, classes=class_names, normalize=True,
-#                       title='Normalized confusion matrix')

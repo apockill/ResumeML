@@ -28,6 +28,7 @@ class Label:
         return self.name
 
 
+
 class Brain:
     def __init__(self, model_dir, output_lex):
         self.session = tf.Session()
@@ -71,7 +72,7 @@ class Brain:
         index = int(round(np.argmax(output_layer), 0))
         label_text = self.output_lex[index]
 
-        return Label(input, output_layer, transfer_layer, output_activation, index, label_text)
+        return Label(input[0], output_layer, transfer_layer, output_activation, index, label_text)
 
     def get_label(self, onehot_output, output_lex):
         index = int(round(np.argmax(onehot_output), 0))
